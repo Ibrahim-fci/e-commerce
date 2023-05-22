@@ -14,7 +14,7 @@ import * as options from "./swagger.json";
 import userRouter from "./routes/user";
 
 const app = express();
-let PORT = process.env.PORT || 8000;
+let PORT = process.env.PORT || 5000;
 
 app.use(cors({ origin: "*" }));
 app.use(bodyParser.json());

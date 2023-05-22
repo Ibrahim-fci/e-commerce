@@ -2,20 +2,7 @@ import { body } from "express-validator";
 import prisma from "../../utils/prisma";
 
 const signupValidator = [
-  body("email")
-    .isEmail()
-    .withMessage("الايميل غير صحيح")
-    .custom(async (value) => {
-      const user = await prisma.user.findUnique({
-        where: {
-          email: value,
-        },
-      });
-
-      if (user) {
-        throw new Error("المستخدم موجود بالفعل");
-      }
-    }),
+  body("email").isEmail().withMessage("الايميل غير صحيح"),
 
   body("password")
     .notEmpty()

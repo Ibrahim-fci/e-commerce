@@ -9,6 +9,17 @@ async function signup(req: any, res: any) {
   if (!errors.isEmpty())
     return res.status(400).json({ errors: errors.array() });
 
+  // check email existed before or not
+  try {
+    const user = await prisma.user.findUnique({
+      where: {
+        email: req.body.email,
+      },
+    });
+
+    if (user) return res.status(400).json({ mesg: "المستخدم موجود بالفعل" });
+  } catch {}
+
   //// create a new user
   const user = await prisma.user.create({
     data: {

@@ -34,7 +34,6 @@
         "summary": "Create a new user",
         "requestBody": {
           "description": "User Object",
-          "required": true,
           "content": {
             "application/json": {
               "schema": {
@@ -44,123 +43,73 @@
           }
         },
         "responses": {
-          "200": {
+          "201": {
             "description": "OK",
-            "schema": {
-              "$ref": "#/definitions/Users"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string",
+                      "example": "تم تسجيل المستخدم بنجاح"
+                    }
+                  }
+                }
+              }
             }
           }
         }
       }
     },
-    "/cats/{id}": {
-      "parameters": [
-        {
-          "name": "id",
-          "in": "path",
-          "required": true,
-          "description": "ID of the cat that we want to match",
-          "type": "string"
-        }
-      ],
-      "get": {
-        "tags": ["Cats"],
-        "summary": "Get cat with given ID",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "description": "Cat with id",
-            "schema": {
-              "$ref": "#/definitions/id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "$ref": "#/definitions/Cat"
-            }
-          },
-          "404": {
-            "description": "Failed. Cat not found."
-          }
-        }
-      },
-      "put": {
-        "summary": "Update cat with given ID",
-        "tags": ["Cats"],
+    "/users/login/": {
+      "post": {
+        "tags": ["User"],
+        "summary": "Authenticate a user",
         "requestBody": {
-          "description": "Cat Object",
+          "description": "User Object",
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/definitions/Cat"
+                "$ref": "#/definitions/UserLogin"
               }
             }
           }
         },
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "description": "Cat with new values of properties",
-            "schema": {
-              "$ref": "#/definitions/id"
-            }
-          }
-        ],
         "responses": {
           "200": {
             "description": "OK",
-            "schema": {
-              "$ref": "#/definitions/Cat"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string",
+                      "example": "تم الدخول بنجاح"
+                    },
+                    "token": {
+                      "type": "string",
+                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NywiZW1haWwiOiJ0ZXN0QG1pbC5lZyIsImlhdCI6MTY4NDc2NDU1Mn0"
+                    }
+                  }
+                }
+              }
             }
-          },
-          "400": {
-            "description": "Failed. Bad post data."
-          },
-          "404": {
-            "description": "Failed. Cat not found."
-          }
-        }
-      },
-      "delete": {
-        "summary": "Delete cat with given ID",
-        "tags": ["Cats"],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "description": "Delete Cat with id",
-            "schema": {
-              "$ref": "#/definitions/id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "$ref": "#/definitions/id"
-            }
-          },
-          "404": {
-            "description": "Failed. Cat not found."
           }
         }
       }
     }
   },
   "definitions": {
-    "id": {
+    "UserLogin": {
+      "type": "object",
       "properties": {
-        "uuid": {
+        "email": {
+          "type": "string"
+        },
+        "password": {
           "type": "string"
         }
       }
@@ -211,6 +160,7 @@
         }
       }
     },
+
     "Users": {
       "type": "object",
       "properties": {
