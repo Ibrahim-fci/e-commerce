@@ -9,6 +9,21 @@
       "url": "https://opensource.org/licenses/MIT"
     }
   },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "in": "header",
+        "name": "Authorization",
+        "description": "Bearer Token",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "security": {
+    "bearerAuth": []
+  },
   "servers": [
     {
       "url": "/",
@@ -100,6 +115,43 @@
           }
         }
       }
+    },
+    "/users/profile/": {
+      "post": {
+        "tags": ["User"],
+        "summary": "Update User Profile",
+        "requestBody": {
+          "description": "User Object",
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/definitions/Profile"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string",
+                      "example": "تم تعديل البيانات بنجاح"
+                    },
+                    "profile": {
+                      "$ref": "#/definitions/Profile"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "definitions": {
@@ -156,11 +208,45 @@
             },
             "lName": {
               "type": "string"
-            },
-            "url": {
-              "type": "string"
             }
           }
+        }
+      }
+    },
+    "Profile": {
+      "type": "object",
+      "properties": {
+        "bio": {
+          "type": "string",
+          "required": false
+        },
+        "fName": {
+          "type": "string",
+          "required": false
+        },
+        "lName": {
+          "type": "string",
+          "required": false
+        },
+        "phoneNum": {
+          "type": "string",
+          "required": false
+        },
+        "country": {
+          "type": "string",
+          "required": false
+        },
+        "city": {
+          "type": "string",
+          "required": false
+        },
+        "address": {
+          "type": "string",
+          "required": false
+        },
+        "image": {
+          "type": "file",
+          "required": false
         }
       }
     },

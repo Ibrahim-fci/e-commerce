@@ -1,0 +1,22 @@
+{
+  "type": "object",
+  "properties": {
+    "email": {
+      "type": "string"
+    },
+    "fName": {
+      "type": "string"
+    },
+    "lName": {
+      "type": "string",
+      "required": "false"
+    },
+    "password": {
+      "type": "string"
+    },
+    "role": {
+      "type": "string",
+      "enum": ["CLIENT", "COMPANY"]
+    }
+  }
+}

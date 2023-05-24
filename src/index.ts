@@ -14,13 +14,14 @@ import * as options from "./swagger.json";
 import userRouter from "./routes/user";
 
 const app = express();
-let PORT = process.env.PORT || 5000;
+let PORT = process.env.PORT || 8000;
 
 app.use(cors({ origin: "*" }));
 app.use(bodyParser.json());
 
 app.use(morgan("tiny"));
 app.use(express.json());
+app.use(express.static("public"));
 
 app.use("/users", userRouter);
 app.use("/", swaggerUi.serve, swaggerUi.setup(options, { explorer: true }));

@@ -22,4 +22,17 @@ const loginValidator = [
   body("password").notEmpty().withMessage("ادخل كلمة المرور"),
 ];
 
-export { signupValidator, loginValidator };
+const ProfileValidator = [
+  body("bio").isString().withMessage("السيرة الشخصية نص").optional(),
+  body("fName").isString().withMessage(" ادخل الاسم الاول نص").optional(),
+  body("lName").isString().withMessage("ادخل الاسم الاخير نص").optional(),
+  body("phoneNum")
+    .isLength({ min: 10 })
+    .optional()
+    .withMessage("رقم الموبايل اكبر من 10 ارقام"),
+  body("country").isString().withMessage("ادخل اسم الدولة نص").optional(),
+  body("city").isString().withMessage("ادخل اسم المحافظة نص").optional(),
+  body("address").isString().withMessage("ادخل  العنوان نص").optional(),
+];
+
+export { signupValidator, loginValidator, ProfileValidator };
