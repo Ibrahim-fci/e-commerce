@@ -129,6 +129,10 @@
         },
         "password": {
           "type": "string"
+        },
+        "role": {
+          "type": "string",
+          "enum": ["CLIENT", "COMPANY"]
         }
       }
     },

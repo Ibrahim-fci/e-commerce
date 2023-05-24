@@ -26,6 +26,7 @@ async function signup(req: any, res: any) {
       email: req.body.email,
       fullName: req.body.fName + " " + req.body.lName,
       password: await encryptText(req.body.password),
+      role: req.body.role,
     },
   });
 

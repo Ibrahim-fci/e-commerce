@@ -12,6 +12,9 @@ const signupValidator = [
 
   body("fName").notEmpty().withMessage("ادخل الاسم الاول"),
   body("lName").isString().withMessage("ادخل الاسم الاخير").optional(),
+  body("role")
+    .isIn(["CLIENT", "COMPANY", "ADMIN"])
+    .withMessage("ادخل الصلاحية"),
 ];
 
 const loginValidator = [

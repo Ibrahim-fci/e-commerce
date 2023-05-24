@@ -26,5 +26,12 @@ model User{
   email String @unique
   password  String?
   fullName String 
+  role Role  @default(CLIENT)
   profile Profile?
+}
+
+enum Role{
+  CLIENT
+  COMPANY
+  ADMIN
 }
