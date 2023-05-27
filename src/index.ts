@@ -12,6 +12,7 @@ import * as options from "./swagger.json";
 
 // import routers
 import userRouter from "./routes/user";
+import categoryRouter from "./routes/category";
 
 const app = express();
 let PORT = process.env.PORT || 8000;
@@ -24,6 +25,7 @@ app.use(express.json());
 app.use(express.static("public"));
 
 app.use("/users", userRouter);
+app.use("/category", categoryRouter);
 app.use("/", swaggerUi.serve, swaggerUi.setup(options, { explorer: true }));
 
 app.listen(PORT, () => {

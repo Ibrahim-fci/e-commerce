@@ -1,22 +1,13 @@
 {
   "type": "object",
   "properties": {
-    "email": {
-      "type": "string"
-    },
-    "fName": {
-      "type": "string"
-    },
-    "lName": {
+    "nameEn": {
       "type": "string",
-      "required": "false"
+      "unique": "true"
     },
-    "password": {
-      "type": "string"
-    },
-    "role": {
+    "nameAr": {
       "type": "string",
-      "enum": ["CLIENT", "COMPANY"]
+      "unique": "true"
     }
   }
 }

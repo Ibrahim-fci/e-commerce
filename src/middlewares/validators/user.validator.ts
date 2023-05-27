@@ -1,5 +1,4 @@
 import { body } from "express-validator";
-import prisma from "../../utils/prisma";
 
 const signupValidator = [
   body("email").isEmail().withMessage("الايميل غير صحيح"),
