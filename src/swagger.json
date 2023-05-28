@@ -388,6 +388,10 @@
         },
         "password": {
           "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["normal", "social"]
         }
       }
     },
@@ -410,6 +414,10 @@
         "role": {
           "type": "string",
           "enum": ["CLIENT", "COMPANY"]
+        },
+        "type": {
+          "type": "string",
+          "enum": ["normal", "social"]
         }
       }
     },

@@ -5,6 +5,48 @@ import { generateAccessToken } from "../utils/jwt";
 
 let host = "http://localhost:8000/";
 
+async function createNewUser(req: any, res: any) {
+  let user = { id: 0 };
+  try {
+    if (req.body.type == "normal") {
+      if (!req.body.password)
+        return res.status(400).json({ msg: "ادخل  كلمة المرور" });
+      //// create a new user
+      user = await prisma.user.create({
+        data: {
+          email: req.body.email,
+          fullName: req.body.fName + " " + req.body.lName,
+          password: await encryptText(req.body.password),
+          role: req.body.role,
+        },
+      });
+    } else if (req.body.type == "social") {
+      //// create a new user
+      user = await prisma.user.create({
+        data: {
+          email: req.body.email,
+          fullName: req.body.fName + " " + req.body.lName,
+          // password: "",
+          role: req.body.role,
+        },
+      });
+    }
+
+    ///create a user  profile
+    const profile = await prisma.profile.create({
+      data: {
+        fName: req.body.fName,
+        lName: req.body.lName,
+        userId: user.id,
+      },
+    });
+    /// return success method
+    return res.status(201).json({ mesg: "تم تسجيل المستخدم بنجاح" });
+  } catch {
+    return res.status(400).json({ msg: "somthing went wrong" });
+  }
+}
+
 async function signup(req: any, res: any) {
   /// validate request body
   const errors = validationResult(req);
@@ -22,26 +64,8 @@ async function signup(req: any, res: any) {
     if (user) return res.status(400).json({ mesg: "المستخدم موجود بالفعل" });
   } catch {}
 
-  //// create a new user
-  const user = await prisma.user.create({
-    data: {
-      email: req.body.email,
-      fullName: req.body.fName + " " + req.body.lName,
-      password: await encryptText(req.body.password),
-      role: req.body.role,
-    },
-  });
-
-  ///create a user  profile
-  const profile = await prisma.profile.create({
-    data: {
-      fName: req.body.fName,
-      lName: req.body.lName,
-      userId: user.id,
-    },
-  });
-  /// return success method
-  return res.status(201).json({ mesg: "تم تسجيل المستخدم بنجاح" });
+  //fun to create a new user
+  await createNewUser(req, res);
 }
 
 async function login(req: any, res: any) {
@@ -51,24 +75,31 @@ async function login(req: any, res: any) {
     return res.status(400).json({ errors: errors.array() });
 
   // check if user email existed or not
-
   const user = await prisma.user.findFirst({
     where: {
       email: req.body.email,
     },
   });
 
-  //
   if (!user) return res.status(404).json({ msg: "المستخدم غير موجود" });
 
-  // compare user pasword
+  //generate token
+  let token = await generateAccessToken({ id: user.id, email: user.email });
 
+  if (req.body.type == "social") {
+    return res.status(200).json({ msg: "تم الدخول بنجاح", token: token });
+  }
+
+  //else normal login (check if there is password or not  and compare passowrd)
+
+  if (!req.body.password)
+    return res.status(400).json({ msg: "ادخل كلمة المرور" });
+
+  // compare user pasword
   if (!(await decryptText(req.body.password, user.password)))
     return res
       .status(400)
       .json({ msg: "بريد غير صحيح او كلمة مرور غير صحيحة" });
-
-  let token = await generateAccessToken({ id: user.id, email: user.email });
 
   return res.status(200).json({ msg: "تم الدخول بنجاح", token: token });
 }
