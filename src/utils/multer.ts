@@ -33,4 +33,21 @@ const profileUpload = multer({
   },
 });
 
-export { profileUpload };
+//Setting storage engine
+const productStorageEngine = multer.diskStorage({
+  destination: "./public/images/products",
+  filename: (req: any, file: any, cb: any) => {
+    cb(null, `${Date.now()}--${file.originalname}`);
+  },
+});
+
+//initializing  multer
+const productUpload = multer({
+  storage: productStorageEngine,
+  //   limits: { fileSize: 10000000 },
+  fileFilter: (req, file, cb) => {
+    checkFileType(file, cb);
+  },
+});
+
+export { profileUpload, productUpload };

@@ -11,17 +11,17 @@ datasource db {
 }
 
 model Profile {
-  id     Int     @id @default(autoincrement())
-  bio    String?
-  url    String?
-  fName  String?
-  lName  String?
+  id       Int     @id @default(autoincrement())
+  bio      String?
+  url      String?
+  fName    String?
+  lName    String?
   phoneNum String?
-  country String?
-  city String?
-  address String?
-  user   User    @relation(fields: [userId], references: [id])
-  userId Int     @unique
+  country  String?
+  city     String?
+  address  String?
+  user     User    @relation(fields: [userId], references: [id])
+  userId   Int     @unique
 }
 
 model User {
@@ -32,7 +32,8 @@ model User {
   role     Role     @default(CLIENT)
   profile  Profile?
 
-  orders User_Order_Product[]
+  orders   User_Order_Product[]
+  products Product[]
 }
 
 model Category {
@@ -54,44 +55,43 @@ model SubCategory {
 }
 
 model Product {
-  id     Int    @id @default(autoincrement())
-  nameEn String @db.Text
-  nameAr String @db.Text
+  id            Int     @id @default(autoincrement())
+  nameEn        String  @db.Text
+  nameAr        String  @db.Text
   price         Float
   descriptionEn String? @db.Text
   descriptionAr String? @db.Text
-  url String?
-  quantity Int?
+  url           String?
+  quantity      Int?
+  cretebBy      User    @relation(fields: [userId], references: [id])
+  userId        Int
 
   sybCategory   SubCategory @relation(fields: [subCategoryId], references: [id])
   subCategoryId Int
-  orders Order[]
+  orders        Order[]
 }
 
 model Order {
-  id     Int         @id @default(autoincrement())
-  quantity Int  @default(1)
-  price Float?
+  id       Int    @id @default(autoincrement())
+  quantity Int    @default(1)
+  price    Float?
 
-  product   Product @relation(fields: [productId], references: [id])
+  product   Product              @relation(fields: [productId], references: [id])
   productId Int
-  orders User_Order_Product[]
-
+  orders    User_Order_Product[]
 }
 
-
-model User_Order_Product{
-  order   Order @relation(fields: [orderId], references: [id])
-  orderId Int
-  createdAt   DateTime  @default(now())
+model User_Order_Product {
+  order       Order       @relation(fields: [orderId], references: [id])
+  orderId     Int
+  createdAt   DateTime    @default(now())
   deliveredAt DateTime?
-  status OrderStatus @default(INPROGRESS)
+  status      OrderStatus @default(INPROGRESS)
 
   user   User @relation(fields: [userId], references: [id])
   userId Int
 
-  @@id([orderId,userId])
-
+  @@id([orderId, userId])
 }
 
 enum Role {
@@ -106,6 +106,3 @@ enum OrderStatus {
   CONFIRMED
   CANCELLED
 }
-
-
-

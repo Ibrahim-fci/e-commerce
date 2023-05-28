@@ -13,6 +13,7 @@ import * as options from "./swagger.json";
 // import routers
 import userRouter from "./routes/user";
 import categoryRouter from "./routes/category";
+import productRouter from "./routes/product";
 
 const app = express();
 let PORT = process.env.PORT || 8000;
@@ -25,8 +26,10 @@ app.use(express.json());
 app.use(express.static("public"));
 
 app.use("/users", userRouter);
-app.use("/category", categoryRouter);
+app.use("/categories", categoryRouter);
+app.use("/products", productRouter);
 app.use("/", swaggerUi.serve, swaggerUi.setup(options, { explorer: true }));
+// app.use("*", async (req: any, res: any) => res.json({ msg: "ffffffffff" }));
 
 app.listen(PORT, () => {
   console.log(`server running on port ${PORT} ...`);

@@ -46,6 +46,10 @@
     {
       "name": "subCategory",
       "description": "API for subCategory in the system"
+    },
+    {
+      "name": "Product",
+      "description": "API for Products  "
     }
   ],
   "consumes": ["application/json"],
@@ -161,7 +165,7 @@
         }
       }
     },
-    "/category/": {
+    "/categories/": {
       "post": {
         "tags": ["Category"],
         "summary": " add a new major category",
@@ -200,7 +204,7 @@
         }
       }
     },
-    "/category/{id}": {
+    "/categories/{id}": {
       "parameters": [
         {
           "name": "id",
@@ -248,7 +252,7 @@
         }
       }
     },
-    "/category/subCategory/": {
+    "/categories/subCategory/": {
       "post": {
         "tags": ["subCategory"],
         "summary": " add a new subCategory",
@@ -287,7 +291,7 @@
         }
       }
     },
-    "/category/subCategory/{id}": {
+    "/categories/subCategory/{id}": {
       "parameters": [
         {
           "name": "id",
@@ -326,6 +330,45 @@
                     "subCategory": {
                       "type": "object",
                       "$ref": "#definitions/subCategory"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/products/": {
+      "post": {
+        "tags": ["Product"],
+        "summary": "add a new product by user with role (ADMIN or COMPANY)",
+        "requestBody": {
+          "description": "Product Object",
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/definitions/product"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string",
+                      "example": "تم اضافة المنتج بنجاح"
+                    },
+                    "product": {
+                      "type": "object",
+                      "$ref": "#definitions/product"
                     }
                   }
                 }
@@ -475,6 +518,39 @@
         },
         "categoryId": {
           "type": "integer"
+        }
+      }
+    },
+    "product": {
+      "type": "object",
+      "properties": {
+        "nameEn": {
+          "type": "string"
+        },
+        "nameAr": {
+          "type": "string"
+        },
+        "descriptionEn": {
+          "type": "string",
+          "required": false
+        },
+        "descriptionAr": {
+          "type": "string",
+          "required": false
+        },
+        "price": {
+          "type": "integer"
+        },
+        "quantity": {
+          "type": "integer",
+          "required": false
+        },
+        "subCategoryId": {
+          "type": "integer"
+        },
+        "image": {
+          "type": "file",
+          "required": false
         }
       }
     },
