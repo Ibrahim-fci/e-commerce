@@ -1,7 +1,11 @@
 import prisma from "../utils/prisma";
 import { validationResult } from "express-validator";
 import { encryptText, decryptText } from "../utils/encrypt-decrypt";
-import { generateAccessToken } from "../utils/jwt";
+import {
+  generateAccessToken,
+  generateRefreshToken,
+  verifyRefreshToken,
+} from "../utils/jwt";
 
 let host = "http://localhost:8000/";
 
@@ -85,9 +89,17 @@ async function login(req: any, res: any) {
 
   //generate token
   let token = await generateAccessToken({ id: user.id, email: user.email });
+  let refreshToken = await generateRefreshToken({
+    id: user.id,
+    email: user.email,
+  });
 
   if (req.body.type == "social") {
-    return res.status(200).json({ msg: "تم الدخول بنجاح", token: token });
+    return res.status(200).json({
+      msg: "تم الدخول بنجاح",
+      token: token,
+      refreshToken: refreshToken,
+    });
   }
 
   //else normal login (check if there is password or not  and compare passowrd)
@@ -101,7 +113,9 @@ async function login(req: any, res: any) {
       .status(400)
       .json({ msg: "بريد غير صحيح او كلمة مرور غير صحيحة" });
 
-  return res.status(200).json({ msg: "تم الدخول بنجاح", token: token });
+  return res
+    .status(200)
+    .json({ msg: "تم الدخول بنجاح", token: token, refreshToken: refreshToken });
 }
 
 async function updateProfile(req: any, res: any) {
@@ -149,4 +163,21 @@ async function updateProfile(req: any, res: any) {
   }
 }
 
-export { signup, login, updateProfile };
+async function refreshToken(req: any, res: any) {
+  /// validate request body
+  const errors = validationResult(req);
+  if (!errors.isEmpty())
+    return res.status(400).json({ errors: errors.array() });
+
+  let refreshToken = req.body.refreshToken;
+  const userData = verifyRefreshToken(refreshToken, res); //GET USER DATA FROM TOKEN
+
+  const newAccessToken = await generateAccessToken(userData);
+  const newRefreshToken = await generateRefreshToken(userData);
+
+  return res
+    .status(200)
+    .json({ accessToken: newAccessToken, refreshToken: newRefreshToken });
+}
+
+export { signup, login, updateProfile, refreshToken };

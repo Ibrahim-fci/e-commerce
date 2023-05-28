@@ -1,10 +1,16 @@
 import express from "express";
 const router = express.Router();
-import { signup, login, updateProfile } from "../controllers/user.controller";
+import {
+  signup,
+  login,
+  updateProfile,
+  refreshToken,
+} from "../controllers/user.controller";
 import {
   signupValidator,
   loginValidator,
   ProfileValidator,
+  refreshTokenValidator,
 } from "../middlewares/validators/user.validator";
 
 import { profileUpload } from "../utils/multer";
@@ -20,4 +26,5 @@ router.post(
   updateProfile
 );
 
+router.post("/token/", refreshTokenValidator, refreshToken);
 export default router;

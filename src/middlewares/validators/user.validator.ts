@@ -35,4 +35,11 @@ const ProfileValidator = [
   body("address").isString().withMessage("ادخل  العنوان نص").optional(),
 ];
 
-export { signupValidator, loginValidator, ProfileValidator };
+const refreshTokenValidator = [body("refreshToken").isString().notEmpty()];
+
+export {
+  signupValidator,
+  loginValidator,
+  ProfileValidator,
+  refreshTokenValidator,
+};
