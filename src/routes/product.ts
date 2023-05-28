@@ -1,7 +1,10 @@
 import express from "express";
-import { addProduct } from "../controllers/product.controller";
+import { addProduct, updateProduct } from "../controllers/product.controller";
 import { authorize } from "../middlewares/authentication/auth";
-import { addProductValidator } from "../middlewares/validators/product.validator";
+import {
+  addProductValidator,
+  updateProductValidator,
+} from "../middlewares/validators/product.validator";
 import { productUpload } from "../utils/multer";
 
 const router = express.Router();
@@ -14,4 +17,11 @@ router.post(
   addProduct
 );
 
+router.put(
+  "/:id",
+  authorize,
+  productUpload.single("image"),
+  updateProductValidator,
+  updateProduct
+);
 export default router;

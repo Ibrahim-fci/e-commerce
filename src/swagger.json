@@ -423,6 +423,54 @@
           }
         }
       }
+    },
+    "/products/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "ID of the product that we want to match",
+          "type": "string"
+        }
+      ],
+      "put": {
+        "tags": ["Product"],
+        "summary": "update a product by user with role (ADMIN or COMPANY)",
+        "requestBody": {
+          "description": "Product Object",
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/definitions/product"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string",
+                      "example": "تم التعديل بنجاح"
+                    },
+                    "product": {
+                      "type": "object",
+                      "$ref": "#definitions/product"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "definitions": {

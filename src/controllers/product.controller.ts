@@ -47,4 +47,89 @@ async function addProduct(req: any, res: any) {
   }
 }
 
-export { addProduct };
+async function updateProduct(req: any, res: any) {
+  //get user from request.user
+  const user = req.user;
+
+  if (user.role != "ADMIN" && user.role != "COMPANY")
+    return res.status(400).json({ msg: "ليس لديك صلاحية لاضافة منتج" });
+
+  /// validate request body
+  const errors = validationResult(req);
+  if (!errors.isEmpty())
+    return res.status(400).json({ errors: errors.array() });
+
+  // try {
+  let product = await prisma.product.findUnique({
+    where: {
+      id: parseInt(req.params.id),
+    },
+  });
+
+  if (!product) return res.status(404).json({ msg: "المنتج غير موجود" });
+
+  if (parseInt(req.body.subCategoryId) && req.body.subCategoryId) {
+    let subCategory = await prisma.subCategory.findUnique({
+      where: {
+        id: parseInt(req.body.subCategoryId),
+      },
+    });
+
+    if (!subCategory) return res.status(404).json({ msg: "التصنيف غير موجود" });
+  }
+
+  // update product data
+  let updatedProduct = await prisma.product.update({
+    where: {
+      id: product.id,
+    },
+    data: {
+      nameEn: req.body.nameEn ? req.body.nameEn : product.nameEn,
+      nameAr: req.body.nameAr ? req.body.nameAr : product.nameAr,
+      subCategoryId: parseInt(req.body.subCategoryId)
+        ? parseInt(req.body.subCategoryId)
+        : product.subCategoryId,
+      price: parseInt(req.body.price)
+        ? parseInt(req.body.price)
+        : product.price,
+      quantity: parseInt(req.body.quantity)
+        ? parseInt(req.body.quantity)
+        : product.quantity,
+      descriptionAr: req.body.descriptionAr
+        ? req.body.descriptionAr
+        : product.descriptionAr,
+      descriptionEn: req.body.descriptionEn
+        ? req.body.descriptionEn
+        : product.descriptionEn,
+      url: req.file
+        ? `${host}/images/products/` + req.file.filename
+        : product.url,
+    },
+  });
+
+  return res
+    .status(200)
+    .json({ msg: "تم التعديل بنجاح", product: updatedProduct });
+  // } catch {}
+}
+
+async function deleteProduct(req: any, res: any) {
+  //get user from request.user
+  const user = req.user;
+
+  if (user.role != "ADMIN" && user.role != "COMPANY")
+    return res.status(400).json({ msg: "ليس لديك صلاحية لاضافة منتج" });
+
+  try {
+    await prisma.product.delete({
+      where: {
+        id: parseInt(req.params.id),
+      },
+    });
+
+    return res.status(200).json({ msg: "تم الحذف بنجاح" });
+  } catch {
+    return res.status(400).json({ msg: "المنتج غير موجود" });
+  }
+}
+export { addProduct, updateProduct };
