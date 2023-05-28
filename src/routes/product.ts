@@ -9,8 +9,8 @@ const router = express.Router();
 router.post(
   "/",
   authorize,
-  addProductValidator,
   productUpload.single("image"),
+  addProductValidator,
   addProduct
 );
 

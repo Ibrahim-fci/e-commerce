@@ -1,15 +1,17 @@
-import { body, check } from "express-validator";
+import { body } from "express-validator";
 
 const addProductValidator = [
   body("nameEn").notEmpty().withMessage("ادخل اسم المنتج باللغة الانجليزية"),
   body("nameAr").notEmpty().withMessage("ادخل اسم المنتج باللغة العربية"),
   body("price").isFloat().withMessage("ادخل  سعر المنتج"),
   body("descriptionEn")
-    .notEmpty()
-    .withMessage(" ادخل  وصف المنتج باللغة الانجليزية"),
+    .isString()
+    .withMessage(" ادخل  وصف المنتج باللغة الانجليزية")
+    .optional(),
   body("descriptionAr")
-    .notEmpty()
-    .withMessage(" ادخل  وصف المنتج باللغة العربية"),
+    .isString()
+    .withMessage(" ادخل  وصف المنتج باللغة العربية")
+    .optional(),
   body("subCategoryId").isInt().withMessage("ادخل تصنيف المنتج"),
   body("quantity").isInt().optional(),
 ];

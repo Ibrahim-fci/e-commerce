@@ -5,8 +5,6 @@ import { host } from "../utils/host";
 async function addProduct(req: any, res: any) {
   //get user from request.user
   const user = req.user;
-  console.log(req.body);
-  console.log(req.file);
 
   if (user.role != "ADMIN" && user.role != "COMPANY")
     return res.status(400).json({ msg: "ليس لديك صلاحية لاضافة منتج" });
