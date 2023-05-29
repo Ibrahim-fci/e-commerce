@@ -180,4 +180,10 @@ async function refreshToken(req: any, res: any) {
     .json({ accessToken: newAccessToken, refreshToken: newRefreshToken });
 }
 
-export { signup, login, updateProfile, refreshToken };
+async function getUserByToken(req: any, res: any) {
+  //get user from req
+  let user = req.user;
+
+  return res.status(200).json({ user: user });
+}
+export { signup, login, updateProfile, refreshToken, getUserByToken };

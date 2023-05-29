@@ -1,5 +1,9 @@
 import express from "express";
-import { addProduct, updateProduct } from "../controllers/product.controller";
+import {
+  addProduct,
+  updateProduct,
+  deleteProduct,
+} from "../controllers/product.controller";
 import { authorize } from "../middlewares/authentication/auth";
 import {
   addProductValidator,
@@ -24,4 +28,6 @@ router.put(
   updateProductValidator,
   updateProduct
 );
+
+router.delete("/:id", authorize, deleteProduct);
 export default router;

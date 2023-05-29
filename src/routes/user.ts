@@ -5,6 +5,7 @@ import {
   login,
   updateProfile,
   refreshToken,
+  getUserByToken,
 } from "../controllers/user.controller";
 import {
   signupValidator,
@@ -25,6 +26,7 @@ router.post(
   profileUpload.single("image"),
   updateProfile
 );
-
+router.get("/", authorize, getUserByToken);
 router.post("/token/", refreshTokenValidator, refreshToken);
+
 export default router;

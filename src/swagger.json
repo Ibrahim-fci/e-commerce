@@ -132,6 +132,24 @@
         }
       }
     },
+    "/users/": {
+      "post": {
+        "tags": ["User"],
+        "summary": "get a user",
+        "responses": {
+          "201": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/definitions/User"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/users/token/": {
       "post": {
         "tags": ["User"],
@@ -463,6 +481,39 @@
                     "product": {
                       "type": "object",
                       "$ref": "#definitions/product"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/products/{id}/": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "ID of the product that we want to match",
+          "type": "string"
+        }
+      ],
+      "delete": {
+        "tags": ["Product"],
+        "summary": "delete a product by user with role (ADMIN) or product creator",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string",
+                      "example": "تم الحذف بنجاح"
                     }
                   }
                 }

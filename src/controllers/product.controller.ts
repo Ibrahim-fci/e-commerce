@@ -117,8 +117,24 @@ async function deleteProduct(req: any, res: any) {
   //get user from request.user
   const user = req.user;
 
-  if (user.role != "ADMIN" && user.role != "COMPANY")
-    return res.status(400).json({ msg: "ليس لديك صلاحية لاضافة منتج" });
+  //check if the user is the product creator or admin user
+  try {
+    let product = await prisma.product.findUnique({
+      where: {
+        id: parseInt(req.params.id),
+      },
+    });
+
+    if (!product)
+      res.status(404).json({ msg: "product with this id not found" });
+
+    if (product?.userId != user.id && user.role != "ADMIN")
+      return res
+        .status(400)
+        .json({ msg: "you have no permission to delete this product" });
+  } catch {
+    return res.status(404).json({ msg: "product not found" });
+  }
 
   try {
     await prisma.product.delete({
@@ -132,4 +148,4 @@ async function deleteProduct(req: any, res: any) {
     return res.status(400).json({ msg: "المنتج غير موجود" });
   }
 }
-export { addProduct, updateProduct };
+export { addProduct, updateProduct, deleteProduct };
