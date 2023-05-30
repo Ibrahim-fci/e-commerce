@@ -84,6 +84,9 @@
                     "token": {
                       "type": "string",
                       "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NywiZW1haWwiOiJ0ZXN0QG1pbC5lZyIsImlhdCI6MTY4NDc2NDU1Mn0"
+                    },
+                    "user": {
+                      "$ref": "#/definitions/UserWithoutPassword"
                     }
                   }
                 }
@@ -123,6 +126,9 @@
                     "token": {
                       "type": "string",
                       "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NywiZW1haWwiOiJ0ZXN0QG1pbC5lZyIsImlhdCI6MTY4NDc2NDU1Mn0"
+                    },
+                    "user": {
+                      "$ref": "#/definitions/UserWithoutPassword"
                     }
                   }
                 }
