@@ -7,10 +7,12 @@ import {
   verifyRefreshToken,
 } from "../utils/jwt";
 
+import { getUser } from "../helpers/user.helper";
+
 let host = "http://localhost:8000/";
 
 async function createNewUser(req: any, res: any) {
-  let user = { id: 0 };
+  let user = { id: 0, email: "" };
   //generate Token
   let token = await generateAccessToken({
     id: req.body.id,
@@ -49,10 +51,15 @@ async function createNewUser(req: any, res: any) {
         userId: user.id,
       },
     });
+
+    //getUser
+    let createdUser = await getUser(user.email, user.id);
     /// return success method
-    return res
-      .status(201)
-      .json({ msg: "تم تسجيل المستخدم بنجاح", token: token });
+    return res.status(201).json({
+      msg: "تم تسجيل المستخدم بنجاح",
+      token: token,
+      user: createdUser,
+    });
   } catch {
     return res.status(400).json({ msg: "somthing went wrong" });
   }
@@ -120,7 +127,11 @@ async function login(req: any, res: any) {
       .status(400)
       .json({ msg: "بريد غير صحيح او كلمة مرور غير صحيحة" });
 
-  return res.status(200).json({ msg: "تم الدخول بنجاح", token: token });
+  let createdUser = await getUser(user.email, user.id);
+
+  return res
+    .status(200)
+    .json({ msg: "تم الدخول بنجاح", token: token, user: createdUser });
 }
 
 async function updateProfile(req: any, res: any) {
