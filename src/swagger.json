@@ -80,6 +80,10 @@
                     "msg": {
                       "type": "string",
                       "example": "تم تسجيل المستخدم بنجاح"
+                    },
+                    "token": {
+                      "type": "string",
+                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NywiZW1haWwiOiJ0ZXN0QG1pbC5lZyIsImlhdCI6MTY4NDc2NDU1Mn0"
                     }
                   }
                 }
@@ -119,10 +123,6 @@
                     "token": {
                       "type": "string",
                       "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NywiZW1haWwiOiJ0ZXN0QG1pbC5lZyIsImlhdCI6MTY4NDc2NDU1Mn0"
-                    },
-                    "refreshToken": {
-                      "type": "string",
-                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NywiZW1haWwiOiJ0ZXN0QG1pbC5lZyIsImlhdCI6MTY4NDc2NDU1Mn0"
                     }
                   }
                 }
@@ -142,7 +142,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/definitions/User"
+                  "$ref": "#/definitions/UserWithoutPassword"
                 }
               }
             }
@@ -586,6 +586,55 @@
             },
             "lName": {
               "type": "string"
+            }
+          }
+        }
+      }
+    },
+
+    "UserWithoutPassword": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string"
+        },
+        "fullName": {
+          "type": "string"
+        },
+        "Profile": {
+          "type": "object",
+          "properties": {
+            "bio": {
+              "type": "string",
+              "required": false
+            },
+            "fName": {
+              "type": "string",
+              "required": false
+            },
+            "lName": {
+              "type": "string",
+              "required": false
+            },
+            "phoneNum": {
+              "type": "string",
+              "required": false
+            },
+            "country": {
+              "type": "string",
+              "required": false
+            },
+            "city": {
+              "type": "string",
+              "required": false
+            },
+            "address": {
+              "type": "string",
+              "required": false
+            },
+            "image": {
+              "type": "file",
+              "required": false
             }
           }
         }

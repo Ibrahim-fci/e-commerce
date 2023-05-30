@@ -11,6 +11,11 @@ let host = "http://localhost:8000/";
 
 async function createNewUser(req: any, res: any) {
   let user = { id: 0 };
+  //generate Token
+  let token = await generateAccessToken({
+    id: req.body.id,
+    email: req.body.emai,
+  });
   try {
     if (req.body.type == "normal") {
       if (!req.body.password)
@@ -45,7 +50,9 @@ async function createNewUser(req: any, res: any) {
       },
     });
     /// return success method
-    return res.status(201).json({ mesg: "تم تسجيل المستخدم بنجاح" });
+    return res
+      .status(201)
+      .json({ mesg: "تم تسجيل المستخدم بنجاح", token: token });
   } catch {
     return res.status(400).json({ msg: "somthing went wrong" });
   }
@@ -98,7 +105,7 @@ async function login(req: any, res: any) {
     return res.status(200).json({
       msg: "تم الدخول بنجاح",
       token: token,
-      refreshToken: refreshToken,
+      // refreshToken: refreshToken,
     });
   }
 
@@ -113,9 +120,7 @@ async function login(req: any, res: any) {
       .status(400)
       .json({ msg: "بريد غير صحيح او كلمة مرور غير صحيحة" });
 
-  return res
-    .status(200)
-    .json({ msg: "تم الدخول بنجاح", token: token, refreshToken: refreshToken });
+  return res.status(200).json({ msg: "تم الدخول بنجاح", token: token });
 }
 
 async function updateProfile(req: any, res: any) {
