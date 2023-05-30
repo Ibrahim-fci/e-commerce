@@ -52,7 +52,7 @@ async function createNewUser(req: any, res: any) {
     /// return success method
     return res
       .status(201)
-      .json({ mesg: "تم تسجيل المستخدم بنجاح", token: token });
+      .json({ msg: "تم تسجيل المستخدم بنجاح", token: token });
   } catch {
     return res.status(400).json({ msg: "somthing went wrong" });
   }
