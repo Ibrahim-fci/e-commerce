@@ -26,7 +26,8 @@ async function createNewUser(req: any, res: any) {
       user = await prisma.user.create({
         data: {
           email: req.body.email,
-          fullName: req.body.fName + " " + req.body.lName,
+          fullName:
+            req.body.fName + " " + (req.body.lName ? req.body.lName : ""),
           password: await encryptText(req.body.password),
           role: req.body.role,
         },
@@ -36,7 +37,8 @@ async function createNewUser(req: any, res: any) {
       user = await prisma.user.create({
         data: {
           email: req.body.email,
-          fullName: req.body.fName + " " + req.body.lName,
+          fullName:
+            req.body.fName + " " + (req.body.lName ? req.body.lName : ""),
           // password: "",
           role: req.body.role,
         },
