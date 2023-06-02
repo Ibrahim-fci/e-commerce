@@ -139,7 +139,7 @@
       }
     },
     "/users/": {
-      "post": {
+      "get": {
         "tags": ["User"],
         "summary": "get a user",
         "responses": {
