@@ -38,6 +38,9 @@ async function addProduct(req: any, res: any) {
         subCategoryId: subCategoryId.id,
         userId: user.id,
       },
+      include: {
+        sybCategory: true,
+      },
     });
     return res
       .status(200)
@@ -77,6 +80,7 @@ async function updateProduct(req: any, res: any) {
 
     if (!subCategory) return res.status(404).json({ msg: "التصنيف غير موجود" });
   }
+  //TODO:remove Image after update it
 
   // update product data
   let updatedProduct = await prisma.product.update({
@@ -104,6 +108,9 @@ async function updateProduct(req: any, res: any) {
       url: req.file
         ? `${host}/images/products/` + req.file.filename
         : product.url,
+    },
+    include: {
+      sybCategory: true,
     },
   });
 
