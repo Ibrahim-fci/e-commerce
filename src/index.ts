@@ -35,7 +35,7 @@ app.use("/", swaggerUi.serve, swaggerUi.setup(options, { explorer: true }));
 // app.use("*", async (req: any, res: any) => res.json({ msg: "ffffffffff" }));
 
 cron.schedule("*/13 * * * *", () => {
-  console.log("running a task every minute");
+  console.log("running a task every 13 minute");
 });
 
 app.listen(PORT, () => {
