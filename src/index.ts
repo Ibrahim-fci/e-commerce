@@ -5,6 +5,7 @@ import bodyParser from "body-parser";
 import cors from "cors";
 import swaggerUi from "swagger-ui-express";
 import * as dotenv from "dotenv";
+import cron from "node-cron";
 dotenv.config();
 
 // import internal modules
@@ -32,6 +33,11 @@ app.use("/products", productRouter);
 app.use("/orders", orderRouter);
 app.use("/", swaggerUi.serve, swaggerUi.setup(options, { explorer: true }));
 // app.use("*", async (req: any, res: any) => res.json({ msg: "ffffffffff" }));
+
+cron.schedule("*/15 * * * * *", function () {
+  console.log("---------------------");
+  console.log("running a task every 15 seconds");
+});
 
 app.listen(PORT, () => {
   console.log(`server running on port ${PORT} ...`);
