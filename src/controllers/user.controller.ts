@@ -102,6 +102,7 @@ async function login(req: any, res: any) {
   });
 
   if (!user) return res.status(404).json({ msg: "المستخدم غير موجود" });
+  let createdUser = await getUser(user.email, user.id);
 
   //generate token
   let token = await generateAccessToken({ id: user.id, email: user.email });
@@ -114,6 +115,7 @@ async function login(req: any, res: any) {
     return res.status(200).json({
       msg: "تم الدخول بنجاح",
       token: token,
+      user: createdUser,
       // refreshToken: refreshToken,
     });
   }
@@ -128,8 +130,6 @@ async function login(req: any, res: any) {
     return res
       .status(400)
       .json({ msg: "بريد غير صحيح او كلمة مرور غير صحيحة" });
-
-  let createdUser = await getUser(user.email, user.id);
 
   return res
     .status(200)

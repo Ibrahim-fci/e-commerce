@@ -78,6 +78,9 @@ model Order {
   product   Product              @relation(fields: [productId], references: [id])
   productId Int
   orders    Cart[]
+
+  createdAt   DateTime    @default(now())
+
 }
 
 model Cart {

@@ -1,3 +1,4 @@
+import { json } from "body-parser";
 import prisma from "../utils/prisma";
 import { validationResult } from "express-validator";
 
@@ -180,19 +181,83 @@ async function deleteOrder(req: any, res: any) {
   }
 }
 
-export { makeOrder, updateOrder, deleteOrder };
+async function bestSellers(req: any, res: any) {
+  // get best sold products
+  let productsList = await getproducts(req);
 
-//best sellers
-// const groupUsers = await prisma.order.groupBy({
-//   by: ["productId"],
-//   _sum: {
-//     quantity: true,
-//   },
-//   orderBy: {
-//     _sum: {
-//       quantity: "desc",
-//     },
-//   },
-// });
+  // get num of users
+  let usersNum = await userRoleHandeler();
 
-// console.log("------------>>>>>>>>>>> ", groupUsers);
+  //get num of products
+  let numProducts = await prisma.product.count();
+
+  // get num of orders
+  let numOrders = await prisma.order.count();
+
+  return res.status(200).json({
+    msg: "home data retrived successfully",
+    users: usersNum,
+    numProducts: numProducts,
+    numOrders: numOrders,
+    productsList: productsList,
+  });
+}
+
+export { makeOrder, updateOrder, deleteOrder, bestSellers };
+
+async function userRoleHandeler() {
+  let usersNum: any[] = [];
+
+  let users = await prisma.user.groupBy({
+    by: ["role"],
+    _count: {
+      role: true,
+    },
+  });
+
+  for (let i = 0; i < users.length; i++) {
+    usersNum.push({ role: users[i].role, num: users[i]._count.role });
+  }
+
+  return usersNum;
+}
+
+async function getproducts(req: any) {
+  let productsList: any[] = [];
+  let page = req.query.page;
+  let size = req.query.size;
+
+  let orders = await prisma.order.groupBy({
+    by: ["productId", "createdAt"],
+
+    _sum: {
+      quantity: true,
+    },
+    orderBy: {
+      _sum: {
+        quantity: "desc",
+      },
+    },
+    skip: parseInt(page) ? parseInt(page) : 0,
+    take: parseInt(size) ? parseInt(size) : 10,
+  });
+
+  //get product data
+  for (let i = 0; i < orders.length; i++) {
+    let product = await prisma.product.findUnique({
+      where: {
+        id: orders[i].productId,
+      },
+      include: {
+        sybCategory: true,
+      },
+    });
+
+    productsList.push({
+      product: product,
+      num_orders: orders[i]._sum.quantity,
+    });
+  }
+
+  return productsList;
+}

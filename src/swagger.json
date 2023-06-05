@@ -684,6 +684,24 @@
           }
         }
       }
+    },
+    "/orders/bestSellers/": {
+      "get": {
+        "tags": ["Order"],
+        "summary": "get a best sellers products",
+        "responses": {
+          "201": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/definitions/BestSellers"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "definitions": {
@@ -926,6 +944,49 @@
         },
         "quantity": {
           "type": "integer"
+        }
+      }
+    },
+    "BestSellers": {
+      "type": "object",
+      "properties": {
+        "users": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "role": {
+                "type": "string",
+                "example": "COMPANY"
+              },
+              "num": {
+                "type": "integer",
+                "example": "12"
+              }
+            }
+          }
+        },
+        "numProducts": {
+          "type": "integer",
+          "example": "144"
+        },
+        "numOrders": {
+          "type": "integer",
+          "example": "12"
+        },
+        "productsList": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "product": {
+                "$ref": "#/definitions/product"
+              },
+              "num_orders": {
+                "type": "integer"
+              }
+            }
+          }
         }
       }
     },
