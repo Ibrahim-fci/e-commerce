@@ -34,8 +34,8 @@ app.use("/orders", orderRouter);
 app.use("/", swaggerUi.serve, swaggerUi.setup(options, { explorer: true }));
 // app.use("*", async (req: any, res: any) => res.json({ msg: "ffffffffff" }));
 
-cron.schedule("*/2 * * * *", () => {
-  console.log("running a task every 2 minute");
+cron.schedule("*/10 * * * *", () => {
+  console.log("running a task every 10 minute");
 });
 
 app.listen(PORT, () => {
