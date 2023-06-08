@@ -702,6 +702,24 @@
           }
         }
       }
+    },
+    "/products": {
+      "get": {
+        "tags": ["Product"],
+        "summary": "get all products",
+        "responses": {
+          "201": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/definitions/product"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "definitions": {

@@ -31,6 +31,7 @@ app.use("/users", userRouter);
 app.use("/categories", categoryRouter);
 app.use("/products", productRouter);
 app.use("/orders", orderRouter);
+
 app.use("/", swaggerUi.serve, swaggerUi.setup(options, { explorer: true }));
 // app.use("*", async (req: any, res: any) => res.json({ msg: "ffffffffff" }));
 

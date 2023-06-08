@@ -3,6 +3,7 @@ import {
   addProduct,
   updateProduct,
   deleteProduct,
+  allProduct,
 } from "../controllers/product.controller";
 import { authorize } from "../middlewares/authentication/auth";
 import {
@@ -28,6 +29,8 @@ router.put(
   updateProductValidator,
   updateProduct
 );
+
+router.get("/", allProduct);
 
 router.delete("/:id", authorize, deleteProduct);
 export default router;

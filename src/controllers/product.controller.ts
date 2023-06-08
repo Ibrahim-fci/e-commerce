@@ -155,4 +155,23 @@ async function deleteProduct(req: any, res: any) {
     return res.status(400).json({ msg: "المنتج غير موجود" });
   }
 }
-export { addProduct, updateProduct, deleteProduct };
+
+async function allProduct(req: any, res: any) {
+  let page = req.query.page;
+  let size = req.query.size;
+
+  try {
+    let products = await prisma.product.findMany({
+      skip: parseInt(page) ? parseInt(page) : 0,
+      take: parseInt(size) ? parseInt(size) : 10,
+      include: {
+        sybCategory: true,
+      },
+    });
+
+    return res.status(200).json({ products });
+  } catch {
+    return res.status(500).json({ msg: "somthing went wrong" });
+  }
+}
+export { addProduct, updateProduct, deleteProduct, allProduct };
