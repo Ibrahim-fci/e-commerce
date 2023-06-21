@@ -1,5 +1,4 @@
 import prisma from "../utils/prisma";
-import { validationResult } from "express-validator";
 import { host } from "../utils/host";
 
 async function addProduct(req: any, res: any) {
@@ -8,11 +7,6 @@ async function addProduct(req: any, res: any) {
 
   if (user.role != "ADMIN" && user.role != "COMPANY")
     return res.status(400).json({ msg: "ليس لديك صلاحية لاضافة منتج" });
-
-  /// validate request body
-  const errors = validationResult(req);
-  if (!errors.isEmpty())
-    return res.status(400).json({ errors: errors.array() });
 
   //create a new product
   try {
@@ -56,11 +50,6 @@ async function updateProduct(req: any, res: any) {
 
   if (user.role != "ADMIN" && user.role != "COMPANY")
     return res.status(400).json({ msg: "ليس لديك صلاحية لاضافة منتج" });
-
-  /// validate request body
-  const errors = validationResult(req);
-  if (!errors.isEmpty())
-    return res.status(400).json({ errors: errors.array() });
 
   // try {
   let product = await prisma.product.findUnique({

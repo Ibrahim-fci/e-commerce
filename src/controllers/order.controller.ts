@@ -1,13 +1,6 @@
-import { json } from "body-parser";
 import prisma from "../utils/prisma";
-import { validationResult } from "express-validator";
 
 async function makeOrder(req: any, res: any) {
-  /// validate request body
-  const errors = validationResult(req);
-  if (!errors.isEmpty())
-    return res.status(400).json({ errors: errors.array() });
-
   const user = req.user;
 
   try {
@@ -65,11 +58,6 @@ async function makeOrder(req: any, res: any) {
 }
 
 async function updateOrder(req: any, res: any) {
-  /// validate request body
-  const errors = validationResult(req);
-  if (!errors.isEmpty())
-    return res.status(400).json({ errors: errors.array() });
-
   const user = req.user;
 
   try {

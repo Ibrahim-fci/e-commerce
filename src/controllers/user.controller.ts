@@ -68,11 +68,6 @@ async function createNewUser(req: any, res: any) {
 }
 
 async function signup(req: any, res: any) {
-  /// validate request body
-  const errors = validationResult(req);
-  if (!errors.isEmpty())
-    return res.status(400).json({ errors: errors.array() });
-
   // check email existed before or not
   try {
     const user = await prisma.user.findUnique({
@@ -89,11 +84,6 @@ async function signup(req: any, res: any) {
 }
 
 async function login(req: any, res: any) {
-  /// validate request body
-  const errors = validationResult(req);
-  if (!errors.isEmpty())
-    return res.status(400).json({ errors: errors.array() });
-
   // check if user email existed or not
   const user = await prisma.user.findFirst({
     where: {
@@ -137,11 +127,6 @@ async function login(req: any, res: any) {
 }
 
 async function updateProfile(req: any, res: any) {
-  /// validate request body
-  const errors = validationResult(req);
-  if (!errors.isEmpty())
-    return res.status(400).json({ errors: errors.array() });
-
   //get user from req
   let user = req.user;
 
@@ -182,11 +167,6 @@ async function updateProfile(req: any, res: any) {
 }
 
 async function refreshToken(req: any, res: any) {
-  /// validate request body
-  const errors = validationResult(req);
-  if (!errors.isEmpty())
-    return res.status(400).json({ errors: errors.array() });
-
   let refreshToken = req.body.refreshToken;
   const userData = verifyRefreshToken(refreshToken, res); //GET USER DATA FROM TOKEN
 

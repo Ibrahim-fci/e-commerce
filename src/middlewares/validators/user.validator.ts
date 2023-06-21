@@ -1,4 +1,5 @@
 import { body } from "express-validator";
+import validatorMiddeleware from "./validationResult";
 
 const signupValidator = [
   body("email").isEmail().withMessage("الايميل غير صحيح"),
@@ -14,12 +15,15 @@ const signupValidator = [
     .withMessage("ادخل الصلاحية"),
 
   body("type").isIn(["normal", "social"]),
+
+  validatorMiddeleware,
 ];
 
 const loginValidator = [
   body("email").isEmail().withMessage("الايميل غير صحيح"),
   body("password").notEmpty().withMessage("ادخل كلمة المرور").optional(),
   body("type").isIn(["normal", "social"]),
+  validatorMiddeleware,
 ];
 
 const ProfileValidator = [
@@ -33,9 +37,14 @@ const ProfileValidator = [
   body("country").isString().withMessage("ادخل اسم الدولة نص").optional(),
   body("city").isString().withMessage("ادخل اسم المحافظة نص").optional(),
   body("address").isString().withMessage("ادخل  العنوان نص").optional(),
+
+  validatorMiddeleware,
 ];
 
-const refreshTokenValidator = [body("refreshToken").isString().notEmpty()];
+const refreshTokenValidator = [
+  body("refreshToken").isString().notEmpty(),
+  validatorMiddeleware,
+];
 
 export {
   signupValidator,

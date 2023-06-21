@@ -1,5 +1,4 @@
 import prisma from "../utils/prisma";
-import { validationResult } from "express-validator";
 
 async function isExistBefore(req: any, res: any) {
   try {
@@ -32,11 +31,6 @@ async function addCategory(req: any, res: any) {
   if (user.role != "ADMIN")
     return res.status(400).json({ msg: "ليس لديك صلاحية لاضافة تصنيف" });
 
-  /// validate request body
-  const errors = validationResult(req);
-  if (!errors.isEmpty())
-    return res.status(400).json({ errors: errors.array() });
-
   // check if category name existed before
   if (await isExistBefore(req, res))
     return res.status(400).json({ msg: "التصنيف موجود من قبل" });
@@ -64,11 +58,6 @@ async function updateCategory(req: any, res: any) {
 
   if (user.role != "ADMIN")
     return res.status(400).json({ msg: "ليس لديك صلاحية لاضافة تصنيف" });
-
-  /// validate request body
-  const errors = validationResult(req);
-  if (!errors.isEmpty())
-    return res.status(400).json({ errors: errors.array() });
 
   //get the category object
   try {
@@ -105,11 +94,6 @@ async function addSubCategory(req: any, res: any) {
   if (user.role != "ADMIN")
     return res.status(400).json({ msg: "ليس لديك صلاحية لاضافة تصنيف" });
 
-  /// validate request body
-  const errors = validationResult(req);
-  if (!errors.isEmpty())
-    return res.status(400).json({ errors: errors.array() });
-
   //get Major category
   const category = await prisma.category.findUnique({
     where: {
@@ -145,11 +129,6 @@ async function updateSubCategory(req: any, res: any) {
 
   if (user.role != "ADMIN")
     return res.status(400).json({ msg: "ليس لديك صلاحية لاضافة تصنيف" });
-
-  /// validate request body
-  const errors = validationResult(req);
-  if (!errors.isEmpty())
-    return res.status(400).json({ errors: errors.array() });
 
   //get the category object
   try {

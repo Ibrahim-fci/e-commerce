@@ -1,4 +1,5 @@
 import { body } from "express-validator";
+import validatorMiddeleware from "./validationResult";
 
 const addProductValidator = [
   body("nameEn").notEmpty().withMessage("ادخل اسم المنتج باللغة الانجليزية"),
@@ -14,6 +15,7 @@ const addProductValidator = [
     .optional(),
   body("subCategoryId").isInt().withMessage("ادخل تصنيف المنتج"),
   body("quantity").isInt().optional(),
+  validatorMiddeleware,
 ];
 
 const updateProductValidator = [
@@ -33,6 +35,7 @@ const updateProductValidator = [
     .optional(),
   body("subCategoryId").isInt().withMessage("ادخل تصنيف المنتج").optional(),
   body("quantity").isInt().optional(),
+  validatorMiddeleware,
 ];
 
 export { addProductValidator, updateProductValidator };
