@@ -1,4 +1,5 @@
 import prisma from "../utils/prisma";
+import expressAsyncHandelar from "express-async-handler";
 
 async function isExistBefore(req: any, res: any) {
   try {
@@ -161,4 +162,27 @@ async function updateSubCategory(req: any, res: any) {
     return res.status(404).json({ msg: "يوجد تصنيف فرعى بهذا الاسم من قبل" });
   }
 }
-export { addCategory, updateCategory, addSubCategory, updateSubCategory };
+
+const getCategories = expressAsyncHandelar(async function getCategories(
+  req: any,
+  res: any
+) {
+  const categories = await prisma.category.findMany({
+    include: {
+      subCategories: true,
+    },
+    orderBy: {
+      id: "asc",
+    },
+  });
+
+  return res.status(200).json({ categories });
+});
+
+export {
+  addCategory,
+  updateCategory,
+  addSubCategory,
+  updateSubCategory,
+  getCategories,
+};

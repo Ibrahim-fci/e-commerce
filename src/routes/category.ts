@@ -4,6 +4,7 @@ import {
   updateCategory,
   addSubCategory,
   updateSubCategory,
+  getCategories,
 } from "../controllers/category.controller";
 import { authorize } from "../middlewares/authentication/auth";
 import {
@@ -15,7 +16,11 @@ import {
 
 const router = express.Router();
 
-router.post("/", authorize, categoryValidator, addCategory);
+router
+  .route("/")
+  .get(getCategories)
+  .post(authorize, categoryValidator, addCategory);
+
 router.put("/:id", authorize, updateCategoryValidator, updateCategory);
 router.post("/subCategory/", authorize, subCategoryValidator, addSubCategory);
 router.put("/:id", authorize, updateSubCategoryValidator, updateSubCategory);

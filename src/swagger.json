@@ -272,6 +272,22 @@
             }
           }
         }
+      },
+      "get": {
+        "tags": ["Category"],
+        "summary": "get all categories",
+        "responses": {
+          "201": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/definitions/allCategories"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/categories/{id}": {
@@ -1002,6 +1018,36 @@
               },
               "num_orders": {
                 "type": "integer"
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "allCategories": {
+      "type": "object",
+      "properties": {
+        "categories": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "number"
+              },
+              "nameEn": {
+                "type": "string"
+              },
+              "nameAr": {
+                "type": "string"
+              },
+              "subCategories": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "$ref": "#definitions/subCategory"
+                }
               }
             }
           }
