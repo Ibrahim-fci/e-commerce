@@ -169,7 +169,13 @@ const getCategories = expressAsyncHandelar(async function getCategories(
 ) {
   const categories = await prisma.category.findMany({
     include: {
-      subCategories: true,
+      subCategories: {
+        select: {
+          id: true,
+          nameAr: true,
+          nameEn: true,
+        },
+      },
     },
     orderBy: {
       id: "asc",

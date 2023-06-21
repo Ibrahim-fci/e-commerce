@@ -1,28 +1,39 @@
 import express from "express";
-import {
-  addCategory,
-  updateCategory,
-  addSubCategory,
-  updateSubCategory,
-  getCategories,
-} from "../controllers/category.controller";
+import * as categoryController from "../controllers/category.controller";
 import { authorize } from "../middlewares/authentication/auth";
-import {
-  categoryValidator,
-  subCategoryValidator,
-  updateCategoryValidator,
-  updateSubCategoryValidator,
-} from "../middlewares/validators/category.validator";
+import * as categoryValidator from "../middlewares/validators/category.validator";
 
 const router = express.Router();
 
 router
   .route("/")
-  .get(getCategories)
-  .post(authorize, categoryValidator, addCategory);
+  .get(categoryController.getCategories)
+  .post(
+    authorize,
+    categoryValidator.categoryValidator,
+    categoryController.addCategory
+  );
 
-router.put("/:id", authorize, updateCategoryValidator, updateCategory);
-router.post("/subCategory/", authorize, subCategoryValidator, addSubCategory);
-router.put("/:id", authorize, updateSubCategoryValidator, updateSubCategory);
+// @desc update category
+router.put(
+  "/:id",
+  authorize,
+  categoryValidator.updateCategoryValidator,
+  categoryController.updateCategory
+);
+router.post(
+  "/subCategory/",
+  authorize,
+  categoryValidator.subCategoryValidator,
+  categoryController.addSubCategory
+);
+
+// @desc update subCategory
+router.put(
+  "/subCategory/:id",
+  authorize,
+  categoryValidator.updateSubCategoryValidator,
+  categoryController.updateSubCategory
+);
 
 export default router;
