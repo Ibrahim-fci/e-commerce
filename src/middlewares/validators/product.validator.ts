@@ -1,4 +1,4 @@
-import { body } from "express-validator";
+import { body, check } from "express-validator";
 import validatorMiddeleware from "./validationResult";
 
 const addProductValidator = [
@@ -38,4 +38,24 @@ const updateProductValidator = [
   validatorMiddeleware,
 ];
 
-export { addProductValidator, updateProductValidator };
+const productFilter = [
+  check("subCategoriesIdes").isArray().withMessage(""),
+  check("subCategoriesIdes.*")
+    .not()
+    .isString()
+    .isInt()
+    .withMessage("subCategoriesIdes must be array of integers"),
+  validatorMiddeleware,
+];
+
+const getByIdValidator = [
+  check("id").isInt().withMessage("productId must be integer"),
+  validatorMiddeleware,
+];
+
+export {
+  addProductValidator,
+  updateProductValidator,
+  productFilter,
+  getByIdValidator,
+};

@@ -1,15 +1,7 @@
 import express from "express";
-import {
-  addProduct,
-  updateProduct,
-  deleteProduct,
-  allProduct,
-} from "../controllers/product.controller";
+import * as productController from "../controllers/product.controller";
 import { authorize } from "../middlewares/authentication/auth";
-import {
-  addProductValidator,
-  updateProductValidator,
-} from "../middlewares/validators/product.validator";
+import * as productValidator from "../middlewares/validators/product.validator";
 import { productUpload } from "../utils/multer";
 
 const router = express.Router();
@@ -18,19 +10,29 @@ router.post(
   "/",
   authorize,
   productUpload.single("image"),
-  addProductValidator,
-  addProduct
+  productValidator.addProductValidator,
+  productController.addProduct
 );
 
 router.put(
   "/:id",
   authorize,
   productUpload.single("image"),
-  updateProductValidator,
-  updateProduct
+  productValidator.updateProductValidator,
+  productController.updateProduct
 );
 
-router.get("/", allProduct);
+router.get("/", productController.allProduct);
+router.get(
+  "/by-id/:id",
+  productValidator.getByIdValidator,
+  productController.getProductById
+);
+router.delete("/:id", authorize, productController.deleteProduct);
 
-router.delete("/:id", authorize, deleteProduct);
+router.get(
+  "/filter/",
+  productValidator.productFilter,
+  productController.productFilter
+);
 export default router;

@@ -1,5 +1,7 @@
 import prisma from "../utils/prisma";
 import { host } from "../utils/host";
+import expressAsyncHandelar from "express-async-handler";
+import { convertStrArrToIntArr } from "../utils/convert-str-arr-to-int-arr";
 
 async function addProduct(req: any, res: any) {
   //get user from request.user
@@ -163,4 +165,82 @@ async function allProduct(req: any, res: any) {
     return res.status(500).json({ msg: "somthing went wrong" });
   }
 }
-export { addProduct, updateProduct, deleteProduct, allProduct };
+
+const productFilter = expressAsyncHandelar(async function (req: any, res: any) {
+  const { nameEn, nameAr, page, size } = req.query;
+  let subCategoriesIdes: [] = req.body.subCategoriesIdes;
+
+  // if there is no filters return all products
+  if (!nameEn && !nameAr && subCategoriesIdes.length == 0) {
+    const products = await prisma.product.findMany({
+      skip: parseInt(page) ? (parseInt(page) - 1) * size : 0,
+      take: parseInt(size) ? parseInt(size) : 10,
+    });
+
+    return res.status(200).json({ products });
+  }
+
+  //if there is a filters
+  const filtered_product = await prisma.product.findMany({
+    where: {
+      OR: [
+        {
+          subCategoryId: {
+            in: subCategoriesIdes ? subCategoriesIdes : [],
+          },
+        },
+        {
+          nameEn: {
+            contains: nameEn,
+            mode: "insensitive",
+          },
+        },
+        {
+          nameAr: {
+            contains: nameAr,
+            mode: "insensitive",
+          },
+        },
+      ],
+    },
+
+    skip: parseInt(page) ? (parseInt(page) - 1) * size : 0,
+    take: parseInt(size) ? parseInt(size) : 10,
+  });
+
+  return res.status(200).json({ filtered_product });
+});
+
+const getProductById = expressAsyncHandelar(async function (
+  req: any,
+  res: any
+) {
+  const product = await prisma.product.findUnique({
+    where: {
+      id: parseInt(req.params.id),
+    },
+    include: {
+      sybCategory: {
+        include: {
+          category: true,
+        },
+      },
+    },
+  });
+
+  if (!product)
+    return res
+      .status(400)
+      .json({ msg: `product with id: ${req.params.id}  Not found` });
+
+  return res.status(200).json({ product });
+});
+
+export {
+  addProduct,
+  updateProduct,
+  deleteProduct,
+  allProduct,
+  productFilter,
+  getProductById,
+};
