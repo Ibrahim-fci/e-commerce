@@ -171,7 +171,10 @@ const productFilter = expressAsyncHandelar(async function (req: any, res: any) {
   let subCategoriesIdes: [] = req.body.subCategoriesIdes;
 
   // if there is no filters return all products
-  if (!nameEn && !nameAr && subCategoriesIdes.length == 0) {
+  if (
+    (!nameEn && !nameAr && !subCategoriesIdes) ||
+    subCategoriesIdes.length == 0
+  ) {
     const products = await prisma.product.findMany({
       skip: parseInt(page) ? (parseInt(page) - 1) * size : 0,
       take: parseInt(size) ? parseInt(size) : 10,

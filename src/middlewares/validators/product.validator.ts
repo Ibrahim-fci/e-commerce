@@ -39,7 +39,7 @@ const updateProductValidator = [
 ];
 
 const productFilter = [
-  check("subCategoriesIdes").isArray().withMessage(""),
+  check("subCategoriesIdes").isArray().withMessage("").optional(),
   check("subCategoriesIdes.*")
     .not()
     .isString()
