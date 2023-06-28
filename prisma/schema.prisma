@@ -75,6 +75,8 @@ model Product {
   quantity      Int?
   cretebBy      User    @relation(fields: [userId], references: [id])
   userId        Int
+  createdAt   DateTime    @default(now())
+
 
   sybCategory   SubCategory @relation(fields: [subCategoryId], references: [id])
   subCategoryId Int

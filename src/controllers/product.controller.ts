@@ -257,6 +257,7 @@ const getProductById = expressAsyncHandelar(async function (
           category: true,
         },
       },
+      flavour: true,
     },
   });
 
