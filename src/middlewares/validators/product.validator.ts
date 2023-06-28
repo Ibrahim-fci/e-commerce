@@ -14,6 +14,7 @@ const addProductValidator = [
     .withMessage(" ادخل  وصف المنتج باللغة العربية")
     .optional(),
   body("subCategoryId").isInt().withMessage("ادخل تصنيف المنتج"),
+  body("flavourId").isInt().withMessage("ادخل طعم المنتج").optional(),
   body("quantity").isInt().optional(),
   validatorMiddeleware,
 ];
@@ -34,11 +35,19 @@ const updateProductValidator = [
     .withMessage(" ادخل  وصف المنتج باللغة العربية")
     .optional(),
   body("subCategoryId").isInt().withMessage("ادخل تصنيف المنتج").optional(),
+  body("flavourId").isInt().withMessage("ادخل طعم المنتج").optional(),
   body("quantity").isInt().optional(),
   validatorMiddeleware,
 ];
 
 const productFilter = [
+  check("flavourIdes").isArray().withMessage("").optional(),
+  check("flavourIdes.*")
+    .not()
+    .isString()
+    .isInt()
+    .withMessage("flavourIdes must be array of integers"),
+
   check("subCategoriesIdes").isArray().withMessage("").optional(),
   check("subCategoriesIdes.*")
     .not()

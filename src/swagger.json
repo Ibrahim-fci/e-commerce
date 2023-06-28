@@ -464,6 +464,44 @@
         }
       }
     },
+    "/products/by-id/{id}/": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "ID of the product that we want to match",
+          "type": "string"
+        }
+      ],
+      "get": {
+        "tags": ["Product"],
+        "summary": "get a product by Id",
+
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string",
+                      "example": "تم التعديل بنجاح"
+                    },
+                    "product": {
+                      "type": "object",
+                      "$ref": "#definitions/product"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/products/{id}": {
       "parameters": [
         {

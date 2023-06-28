@@ -226,7 +226,7 @@ async function getproducts(req: any) {
         quantity: "desc",
       },
     },
-    skip: parseInt(page) ? parseInt(page) : 0,
+    skip: parseInt(page) ? (parseInt(page) - 1) * size : 0,
     take: parseInt(size) ? parseInt(size) : 10,
   });
 

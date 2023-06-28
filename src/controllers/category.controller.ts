@@ -25,7 +25,7 @@ async function isExistBefore(req: any, res: any) {
   }
 }
 
-async function addCategory(req: any, res: any) {
+const addCategory = expressAsyncHandelar(async function (req: any, res: any) {
   //get user from request user
   const user = req.user;
 
@@ -51,9 +51,12 @@ async function addCategory(req: any, res: any) {
   } catch {
     return res.status(400).json({ msg: "تأكد من البيانات" });
   }
-}
+});
 
-async function updateCategory(req: any, res: any) {
+const updateCategory: any = expressAsyncHandelar(async function (
+  req: any,
+  res: any
+) {
   //get user from request user
   const user = req.user;
 
@@ -86,7 +89,7 @@ async function updateCategory(req: any, res: any) {
   } catch {
     return res.status(404).json({ msg: "يوجد تصنيف بهذا الاسم من قبل" });
   }
-}
+});
 
 async function addSubCategory(req: any, res: any) {
   //get user from request user

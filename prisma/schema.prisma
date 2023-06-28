@@ -37,6 +37,15 @@ model User {
   products Product[]
 }
 
+
+model Flavour {
+  id            Int           @id @default(autoincrement())
+  nameEn        String        @unique
+  nameAr        String        @unique
+  products Product[]
+
+}
+
 model Category {
   id            Int           @id @default(autoincrement())
   nameEn        String        @unique
@@ -69,6 +78,10 @@ model Product {
 
   sybCategory   SubCategory @relation(fields: [subCategoryId], references: [id])
   subCategoryId Int
+
+  flavour   Flavour @relation(fields: [flavourId], references: [id]) 
+  flavourId Int @default(1)
+
   orders        Order[]
 }
 model Order {

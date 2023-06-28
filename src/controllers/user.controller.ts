@@ -1,5 +1,4 @@
 import prisma from "../utils/prisma";
-import { validationResult } from "express-validator";
 import { encryptText, decryptText } from "../utils/encrypt-decrypt";
 import {
   generateAccessToken,
@@ -76,7 +75,7 @@ async function signup(req: any, res: any) {
       },
     });
 
-    if (user) return res.status(400).json({ mesg: "المستخدم موجود بالفعل" });
+    if (user) return res.status(400).json({ msg: "المستخدم موجود بالفعل" });
   } catch {}
 
   //fun to create a new user

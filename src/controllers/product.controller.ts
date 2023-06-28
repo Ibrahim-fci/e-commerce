@@ -1,9 +1,8 @@
 import prisma from "../utils/prisma";
 import { host } from "../utils/host";
 import expressAsyncHandelar from "express-async-handler";
-import { convertStrArrToIntArr } from "../utils/convert-str-arr-to-int-arr";
 
-async function addProduct(req: any, res: any) {
+const addProduct = expressAsyncHandelar(async function (req: any, res: any) {
   //get user from request.user
   const user = req.user;
 
@@ -22,6 +21,14 @@ async function addProduct(req: any, res: any) {
     if (!subCategoryId)
       return res.status(404).json({ msg: "التصنيف غير موجود" });
 
+    const flavour = await prisma.flavour.findUnique({
+      where: {
+        id: parseInt(data.flavourId),
+      },
+    });
+
+    if (!flavour) return res.status(404).json({ msg: "التصنيف غير موجود" });
+
     const product = await prisma.product.create({
       data: {
         nameEn: data.nameEn,
@@ -32,6 +39,7 @@ async function addProduct(req: any, res: any) {
         descriptionEn: data.descriptionEn ? data.descriptionEn : null,
         descriptionAr: data.descriptionAr ? data.descriptionAr : null,
         subCategoryId: subCategoryId.id,
+        flavourId: flavour.id,
         userId: user.id,
       },
       include: {
@@ -44,9 +52,9 @@ async function addProduct(req: any, res: any) {
   } catch {
     return res.status(400).json({ msg: "تأكد من صحة البيانات" });
   }
-}
+});
 
-async function updateProduct(req: any, res: any) {
+const updateProduct = expressAsyncHandelar(async function (req: any, res: any) {
   //get user from request.user
   const user = req.user;
 
@@ -81,6 +89,10 @@ async function updateProduct(req: any, res: any) {
     data: {
       nameEn: req.body.nameEn ? req.body.nameEn : product.nameEn,
       nameAr: req.body.nameAr ? req.body.nameAr : product.nameAr,
+      flavourId: parseInt(req.body.flavourId)
+        ? parseInt(req.body.flavourId)
+        : product.flavourId,
+
       subCategoryId: parseInt(req.body.subCategoryId)
         ? parseInt(req.body.subCategoryId)
         : product.subCategoryId,
@@ -109,9 +121,9 @@ async function updateProduct(req: any, res: any) {
     .status(200)
     .json({ msg: "تم التعديل بنجاح", product: updatedProduct });
   // } catch {}
-}
+});
 
-async function deleteProduct(req: any, res: any) {
+const deleteProduct = expressAsyncHandelar(async function (req: any, res: any) {
   //get user from request.user
   const user = req.user;
 
@@ -145,7 +157,7 @@ async function deleteProduct(req: any, res: any) {
   } catch {
     return res.status(400).json({ msg: "المنتج غير موجود" });
   }
-}
+});
 
 async function allProduct(req: any, res: any) {
   let page = req.query.page;
@@ -153,7 +165,7 @@ async function allProduct(req: any, res: any) {
 
   try {
     let products = await prisma.product.findMany({
-      skip: parseInt(page) ? parseInt(page) : 0,
+      skip: parseInt(page) ? (parseInt(page) - 1) * size : 0,
       take: parseInt(size) ? parseInt(size) : 10,
       include: {
         sybCategory: true,
@@ -167,11 +179,19 @@ async function allProduct(req: any, res: any) {
 }
 
 const productFilter = expressAsyncHandelar(async function (req: any, res: any) {
-  const { nameEn, nameAr, page, size } = req.query;
+  const { nameEn, nameAr, page, size, priceStart, priceEnd } = req.query;
   let subCategoriesIdes: [] = req.body.subCategoriesIdes;
+  let flavourIdes: [] = req.body.flavourIdes;
 
   // if there is no filters return all products
-  if (!nameEn && !nameAr && !subCategoriesIdes) {
+  if (
+    !nameEn &&
+    !nameAr &&
+    !subCategoriesIdes &&
+    !flavourIdes &&
+    !priceStart &&
+    !priceEnd
+  ) {
     const products = await prisma.product.findMany({
       skip: parseInt(page) ? (parseInt(page) - 1) * size : 0,
       take: parseInt(size) ? parseInt(size) : 10,
@@ -190,11 +210,23 @@ const productFilter = expressAsyncHandelar(async function (req: any, res: any) {
           },
         },
         {
+          flavourId: {
+            in: flavourIdes ? flavourIdes : [],
+          },
+        },
+        {
           nameEn: {
             contains: nameEn,
             mode: "insensitive",
           },
         },
+        {
+          price: {
+            gte: priceStart ? parseInt(priceStart) : 0,
+            lte: priceEnd ? parseInt(priceEnd) : 1000000,
+          },
+        },
+
         {
           nameAr: {
             contains: nameAr,
