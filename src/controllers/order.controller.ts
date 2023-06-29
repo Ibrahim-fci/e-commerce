@@ -1,4 +1,5 @@
 import prisma from "../utils/prisma";
+import expressAsyncHandelar from "express-async-handler";
 
 async function makeOrder(req: any, res: any) {
   const user = req.user;
@@ -182,12 +183,16 @@ async function bestSellers(req: any, res: any) {
   // get num of orders
   let numOrders = await prisma.order.count();
 
+  //get all categories
+  const categories = await getCategories();
+
   return res.status(200).json({
     msg: "home data retrived successfully",
     users: usersNum,
     numProducts: numProducts,
     numOrders: numOrders,
     productsList: productsList,
+    categories: categories,
   });
 }
 
@@ -249,3 +254,13 @@ async function getproducts(req: any) {
 
   return productsList;
 }
+
+const getCategories = async () => {
+  const categories = await prisma.category.findMany({
+    orderBy: {
+      id: "asc",
+    },
+  });
+
+  return categories;
+};

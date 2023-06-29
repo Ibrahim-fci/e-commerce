@@ -169,6 +169,7 @@ async function allProduct(req: any, res: any) {
       take: parseInt(size) ? parseInt(size) : 10,
       include: {
         sybCategory: true,
+        flavour: true,
       },
     });
 
@@ -179,7 +180,8 @@ async function allProduct(req: any, res: any) {
 }
 
 const productFilter = expressAsyncHandelar(async function (req: any, res: any) {
-  const { nameEn, nameAr, page, size, priceStart, priceEnd } = req.query;
+  const { nameEn, nameAr, page, size, priceStart, priceEnd, category } =
+    req.query;
   let subCategoriesIdes: [] = req.body.subCategoriesIdes;
   let flavourIdes: [] = req.body.flavourIdes;
 
@@ -190,16 +192,41 @@ const productFilter = expressAsyncHandelar(async function (req: any, res: any) {
     !subCategoriesIdes &&
     !flavourIdes &&
     !priceStart &&
-    !priceEnd
+    !priceEnd &&
+    !category
   ) {
     const products = await prisma.product.findMany({
       skip: parseInt(page) ? (parseInt(page) - 1) * size : 0,
       take: parseInt(size) ? parseInt(size) : 10,
+      include: {
+        sybCategory: true,
+        flavour: true,
+      },
     });
 
     return res.status(200).json({ products });
   }
 
+  // get all subCategories from categoryID
+  const subCategoriesFromCategories = await getSubCatgoryListFromCategory(
+    parseInt(category)
+  );
+
+  if (priceStart || priceEnd) {
+    const filtered_products = await priceFilter(
+      subCategoriesIdes,
+      subCategoriesFromCategories,
+      flavourIdes,
+      nameEn,
+      page,
+      size,
+      nameAr,
+      priceStart,
+      priceEnd
+    );
+
+    return res.status(200).json({ filtered_products });
+  }
   //if there is a filters
   const filtered_product = await prisma.product.findMany({
     where: {
@@ -209,6 +236,126 @@ const productFilter = expressAsyncHandelar(async function (req: any, res: any) {
             in: subCategoriesIdes ? subCategoriesIdes : [],
           },
         },
+        {
+          subCategoryId: {
+            in: subCategoriesFromCategories ? subCategoriesFromCategories : [],
+          },
+        },
+
+        {
+          flavourId: {
+            in: flavourIdes ? flavourIdes : [],
+          },
+        },
+        {
+          nameEn: {
+            contains: nameEn,
+            mode: "insensitive",
+          },
+        },
+
+        {
+          nameAr: {
+            contains: nameAr,
+            mode: "insensitive",
+          },
+        },
+      ],
+    },
+    include: {
+      sybCategory: true,
+      flavour: true,
+    },
+
+    skip: parseInt(page) ? (parseInt(page) - 1) * size : 0,
+    take: parseInt(size) ? parseInt(size) : 10,
+  });
+
+  return res.status(200).json({ filtered_product });
+});
+
+const getProductById = expressAsyncHandelar(async function (
+  req: any,
+  res: any
+) {
+  const { page, size } = req.query;
+
+  const product = await prisma.product.findUnique({
+    where: {
+      id: parseInt(req.params.id),
+    },
+    include: {
+      sybCategory: {
+        include: {
+          category: true,
+        },
+      },
+      flavour: true,
+    },
+  });
+
+  if (!product)
+    return res
+      .status(400)
+      .json({ msg: `product with id: ${req.params.id}  Not found` });
+
+  //if there is a filters
+  let filtered_products = await prisma.product.findMany({
+    where: {
+      id: {
+        not: product.id,
+      },
+      OR: [
+        {
+          subCategoryId: product.subCategoryId,
+        },
+        {
+          flavourId: product.flavourId,
+        },
+      ],
+    },
+    include: {
+      sybCategory: {
+        include: {
+          category: true,
+        },
+      },
+      flavour: true,
+    },
+
+    skip: parseInt(page) ? (parseInt(page) - 1) * size : 0,
+    take: parseInt(size) ? parseInt(size) : 10,
+  });
+
+  return res.status(200).json({ product, relatedProducts: filtered_products });
+});
+
+const priceFilter = async function (
+  subCategoriesIdes: any,
+  subCategoriesFromCategories: any,
+  flavourIdes: any,
+  nameEn: any,
+  page: any,
+  size: any,
+  nameAr: any,
+  priceStart: any,
+  priceEnd: any
+) {
+  //if there is a filters
+  const filtered_product = await prisma.product.findMany({
+    where: {
+      OR: [
+        {
+          subCategoryId: {
+            in: subCategoriesIdes ? subCategoriesIdes : [],
+          },
+        },
+        {
+          subCategoryId: {
+            in: subCategoriesFromCategories ? subCategoriesFromCategories : [],
+          },
+        },
+
         {
           flavourId: {
             in: flavourIdes ? flavourIdes : [],
@@ -235,40 +382,17 @@ const productFilter = expressAsyncHandelar(async function (req: any, res: any) {
         },
       ],
     },
+    include: {
+      sybCategory: true,
+      flavour: true,
+    },
 
     skip: parseInt(page) ? (parseInt(page) - 1) * size : 0,
     take: parseInt(size) ? parseInt(size) : 10,
   });
 
-  return res.status(200).json({ filtered_product });
-});
-
-const getProductById = expressAsyncHandelar(async function (
-  req: any,
-  res: any
-) {
-  const product = await prisma.product.findUnique({
-    where: {
-      id: parseInt(req.params.id),
-    },
-    include: {
-      sybCategory: {
-        include: {
-          category: true,
-        },
-      },
-      flavour: true,
-    },
-  });
-
-  if (!product)
-    return res
-      .status(400)
-      .json({ msg: `product with id: ${req.params.id}  Not found` });
-
-  return res.status(200).json({ product });
-});
-
+  return filtered_product;
+};
 export {
   addProduct,
   updateProduct,
@@ -276,4 +400,24 @@ export {
   allProduct,
   productFilter,
   getProductById,
+};
+
+/// helper fuc
+const getSubCatgoryListFromCategory = async (categoryId: any) => {
+  let temp: number[] = [];
+  let subCategories = await prisma.category.findUnique({
+    where: {
+      id: parseInt(categoryId),
+    },
+    select: {
+      subCategories: true,
+    },
+  });
+
+  if (subCategories && subCategories.subCategories) {
+    temp = subCategories.subCategories.map((elem) => {
+      return elem.id;
+    });
+  }
+  return temp ? temp : [];
 };
