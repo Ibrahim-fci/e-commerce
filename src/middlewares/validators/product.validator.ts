@@ -1,4 +1,5 @@
-import { body } from "express-validator";
+import { body, check } from "express-validator";
+import validatorMiddeleware from "./validationResult";
 
 const addProductValidator = [
   body("nameEn").notEmpty().withMessage("ادخل اسم المنتج باللغة الانجليزية"),
@@ -13,7 +14,9 @@ const addProductValidator = [
     .withMessage(" ادخل  وصف المنتج باللغة العربية")
     .optional(),
   body("subCategoryId").isInt().withMessage("ادخل تصنيف المنتج"),
+  body("flavourId").isInt().withMessage("ادخل طعم المنتج").optional(),
   body("quantity").isInt().optional(),
+  validatorMiddeleware,
 ];
 
 const updateProductValidator = [
@@ -32,7 +35,36 @@ const updateProductValidator = [
     .withMessage(" ادخل  وصف المنتج باللغة العربية")
     .optional(),
   body("subCategoryId").isInt().withMessage("ادخل تصنيف المنتج").optional(),
+  body("flavourId").isInt().withMessage("ادخل طعم المنتج").optional(),
   body("quantity").isInt().optional(),
+  validatorMiddeleware,
 ];
 
-export { addProductValidator, updateProductValidator };
+const productFilter = [
+  check("flavourIdes").isArray().withMessage("").optional(),
+  check("flavourIdes.*")
+    .not()
+    .isString()
+    .isInt()
+    .withMessage("flavourIdes must be array of integers"),
+
+  check("subCategoriesIdes").isArray().withMessage("").optional(),
+  check("subCategoriesIdes.*")
+    .not()
+    .isString()
+    .isInt()
+    .withMessage("subCategoriesIdes must be array of integers"),
+  validatorMiddeleware,
+];
+
+const getByIdValidator = [
+  check("id").isInt().withMessage("productId must be integer"),
+  validatorMiddeleware,
+];
+
+export {
+  addProductValidator,
+  updateProductValidator,
+  productFilter,
+  getByIdValidator,
+};

@@ -1,5 +1,6 @@
 import prisma from "../utils/prisma";
-import { validationResult } from "express-validator";
+import expressAsyncHandelar from "express-async-handler";
+import { host } from "../utils/host";
 
 async function isExistBefore(req: any, res: any) {
   try {
@@ -25,17 +26,13 @@ async function isExistBefore(req: any, res: any) {
   }
 }
 
-async function addCategory(req: any, res: any) {
+const addCategory = expressAsyncHandelar(async function (req: any, res: any) {
   //get user from request user
   const user = req.user;
-
+  console.log(req.body);
+  console.log(req.file);
   if (user.role != "ADMIN")
     return res.status(400).json({ msg: "ليس لديك صلاحية لاضافة تصنيف" });
-
-  /// validate request body
-  const errors = validationResult(req);
-  if (!errors.isEmpty())
-    return res.status(400).json({ errors: errors.array() });
 
   // check if category name existed before
   if (await isExistBefore(req, res))
@@ -47,6 +44,7 @@ async function addCategory(req: any, res: any) {
       data: {
         nameEn: req.body.nameEn,
         nameAr: req.body.nameAr,
+        url: req.file ? `${host}/images/category/` + req.file.filename : "",
       },
     });
 
@@ -56,19 +54,17 @@ async function addCategory(req: any, res: any) {
   } catch {
     return res.status(400).json({ msg: "تأكد من البيانات" });
   }
-}
+});
 
-async function updateCategory(req: any, res: any) {
+const updateCategory: any = expressAsyncHandelar(async function (
+  req: any,
+  res: any
+) {
   //get user from request user
   const user = req.user;
 
   if (user.role != "ADMIN")
     return res.status(400).json({ msg: "ليس لديك صلاحية لاضافة تصنيف" });
-
-  /// validate request body
-  const errors = validationResult(req);
-  if (!errors.isEmpty())
-    return res.status(400).json({ errors: errors.array() });
 
   //get the category object
   try {
@@ -87,6 +83,9 @@ async function updateCategory(req: any, res: any) {
       data: {
         nameAr: req.body.nameAr ? req.body.nameAr : category.nameAr,
         nameEn: req.body.nameEn ? req.body.nameEn : category.nameEn,
+        url: req.file
+          ? `${host}/images/category/` + req.file.filename
+          : category.url,
       },
     });
 
@@ -96,7 +95,7 @@ async function updateCategory(req: any, res: any) {
   } catch {
     return res.status(404).json({ msg: "يوجد تصنيف بهذا الاسم من قبل" });
   }
-}
+});
 
 async function addSubCategory(req: any, res: any) {
   //get user from request user
@@ -104,11 +103,6 @@ async function addSubCategory(req: any, res: any) {
 
   if (user.role != "ADMIN")
     return res.status(400).json({ msg: "ليس لديك صلاحية لاضافة تصنيف" });
-
-  /// validate request body
-  const errors = validationResult(req);
-  if (!errors.isEmpty())
-    return res.status(400).json({ errors: errors.array() });
 
   //get Major category
   const category = await prisma.category.findUnique({
@@ -127,6 +121,7 @@ async function addSubCategory(req: any, res: any) {
         nameEn: req.body.nameEn,
         nameAr: req.body.nameAr,
         categoryId: category.id,
+        url: req.file ? `${host}/images/sub-category/` + req.file.filename : "",
       },
     });
 
@@ -146,11 +141,6 @@ async function updateSubCategory(req: any, res: any) {
   if (user.role != "ADMIN")
     return res.status(400).json({ msg: "ليس لديك صلاحية لاضافة تصنيف" });
 
-  /// validate request body
-  const errors = validationResult(req);
-  if (!errors.isEmpty())
-    return res.status(400).json({ errors: errors.array() });
-
   //get the category object
   try {
     const subCategory = await prisma.subCategory.findUnique({
@@ -169,6 +159,9 @@ async function updateSubCategory(req: any, res: any) {
       data: {
         nameAr: req.body.nameAr ? req.body.nameAr : subCategory.nameAr,
         nameEn: req.body.nameEn ? req.body.nameEn : subCategory.nameEn,
+        url: req.file
+          ? `${host}/images/sub-category/` + req.file.filename
+          : subCategory.url,
         categoryId: req.body.categoryId
           ? req.body.categoryId
           : subCategory.categoryId,
@@ -182,4 +175,33 @@ async function updateSubCategory(req: any, res: any) {
     return res.status(404).json({ msg: "يوجد تصنيف فرعى بهذا الاسم من قبل" });
   }
 }
-export { addCategory, updateCategory, addSubCategory, updateSubCategory };
+
+const getCategories = expressAsyncHandelar(async function getCategories(
+  req: any,
+  res: any
+) {
+  const categories = await prisma.category.findMany({
+    include: {
+      subCategories: {
+        select: {
+          id: true,
+          nameAr: true,
+          nameEn: true,
+        },
+      },
+    },
+    orderBy: {
+      id: "asc",
+    },
+  });
+
+  return res.status(200).json({ categories });
+});
+
+export {
+  addCategory,
+  updateCategory,
+  addSubCategory,
+  updateSubCategory,
+  getCategories,
+};

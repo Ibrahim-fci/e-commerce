@@ -1,5 +1,4 @@
 import prisma from "../utils/prisma";
-import { validationResult } from "express-validator";
 import { encryptText, decryptText } from "../utils/encrypt-decrypt";
 import {
   generateAccessToken,
@@ -68,11 +67,6 @@ async function createNewUser(req: any, res: any) {
 }
 
 async function signup(req: any, res: any) {
-  /// validate request body
-  const errors = validationResult(req);
-  if (!errors.isEmpty())
-    return res.status(400).json({ errors: errors.array() });
-
   // check email existed before or not
   try {
     const user = await prisma.user.findUnique({
@@ -81,7 +75,7 @@ async function signup(req: any, res: any) {
       },
     });
 
-    if (user) return res.status(400).json({ mesg: "المستخدم موجود بالفعل" });
+    if (user) return res.status(400).json({ msg: "المستخدم موجود بالفعل" });
   } catch {}
 
   //fun to create a new user
@@ -89,11 +83,6 @@ async function signup(req: any, res: any) {
 }
 
 async function login(req: any, res: any) {
-  /// validate request body
-  const errors = validationResult(req);
-  if (!errors.isEmpty())
-    return res.status(400).json({ errors: errors.array() });
-
   // check if user email existed or not
   const user = await prisma.user.findFirst({
     where: {
@@ -102,6 +91,7 @@ async function login(req: any, res: any) {
   });
 
   if (!user) return res.status(404).json({ msg: "المستخدم غير موجود" });
+  let createdUser = await getUser(user.email, user.id);
 
   //generate token
   let token = await generateAccessToken({ id: user.id, email: user.email });
@@ -114,6 +104,7 @@ async function login(req: any, res: any) {
     return res.status(200).json({
       msg: "تم الدخول بنجاح",
       token: token,
+      user: createdUser,
       // refreshToken: refreshToken,
     });
   }
@@ -129,19 +120,12 @@ async function login(req: any, res: any) {
       .status(400)
       .json({ msg: "بريد غير صحيح او كلمة مرور غير صحيحة" });
 
-  let createdUser = await getUser(user.email, user.id);
-
   return res
     .status(200)
     .json({ msg: "تم الدخول بنجاح", token: token, user: createdUser });
 }
 
 async function updateProfile(req: any, res: any) {
-  /// validate request body
-  const errors = validationResult(req);
-  if (!errors.isEmpty())
-    return res.status(400).json({ errors: errors.array() });
-
   //get user from req
   let user = req.user;
 
@@ -182,11 +166,6 @@ async function updateProfile(req: any, res: any) {
 }
 
 async function refreshToken(req: any, res: any) {
-  /// validate request body
-  const errors = validationResult(req);
-  if (!errors.isEmpty())
-    return res.status(400).json({ errors: errors.array() });
-
   let refreshToken = req.body.refreshToken;
   const userData = verifyRefreshToken(refreshToken, res); //GET USER DATA FROM TOKEN
 

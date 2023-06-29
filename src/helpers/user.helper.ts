@@ -1,5 +1,5 @@
 import prisma from "../utils/prisma";
-import { validationResult } from "express-validator";
+import expressAsyncHandelar from "express-async-handler";
 
 const getUser = async (email: String, id: any) => {
   try {

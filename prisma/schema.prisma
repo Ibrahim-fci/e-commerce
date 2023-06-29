@@ -8,6 +8,7 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  
 }
 
 model Profile {
@@ -32,14 +33,26 @@ model User {
   role     Role     @default(CLIENT)
   profile  Profile?
 
-  orders   User_Order_Product[]
+  orders   Cart[]
   products Product[]
+  favourits    Favourit[]
+
+}
+
+
+model Flavour {
+  id            Int           @id @default(autoincrement())
+  nameEn        String        @unique
+  nameAr        String        @unique
+  products Product[]
+
 }
 
 model Category {
   id            Int           @id @default(autoincrement())
   nameEn        String        @unique
   nameAr        String        @unique
+  url           String?
   subCategories SubCategory[]
 }
 
@@ -47,6 +60,8 @@ model SubCategory {
   id     Int    @id @default(autoincrement())
   nameEn String @db.Text
   nameAr String @db.Text
+  url           String?
+
 
   category   Category @relation(fields: [categoryId], references: [id])
   categoryId Int
@@ -65,33 +80,56 @@ model Product {
   quantity      Int?
   cretebBy      User    @relation(fields: [userId], references: [id])
   userId        Int
+  createdAt   DateTime    @default(now())
+
 
   sybCategory   SubCategory @relation(fields: [subCategoryId], references: [id])
   subCategoryId Int
+
+  flavour   Flavour @relation(fields: [flavourId], references: [id]) 
+  flavourId Int @default(1)
+
   orders        Order[]
+  favourits    Favourit[]
+}
+
+model Favourit{
+  id Int @id @default(autoincrement())
+  product   Product @relation(fields: [productId], references: [id])
+  productId Int
+  user   User @relation(fields: [userId], references: [id])
+  userId Int
+
+
 }
 
 model Order {
   id       Int    @id @default(autoincrement())
   quantity Int    @default(1)
-  price    Float?
 
   product   Product              @relation(fields: [productId], references: [id])
   productId Int
-  orders    User_Order_Product[]
+  orders    Cart[]
+
+  createdAt   DateTime    @default(now())
+
 }
 
-model User_Order_Product {
+model Cart {
+  id       Int    @id @default(autoincrement())
+
   order       Order       @relation(fields: [orderId], references: [id])
   orderId     Int
-  createdAt   DateTime    @default(now())
-  deliveredAt DateTime?
-  status      OrderStatus @default(INPROGRESS)
 
   user   User @relation(fields: [userId], references: [id])
   userId Int
+  
+  createdAt   DateTime    @default(now())
+  deliveredAt DateTime?
+  status      OrderStatus @default(INPROGRESS)
+  price    Float?
 
-  @@id([orderId, userId])
+
 }
 
 enum Role {

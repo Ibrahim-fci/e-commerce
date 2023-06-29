@@ -272,6 +272,22 @@
             }
           }
         }
+      },
+      "get": {
+        "tags": ["Category"],
+        "summary": "get all categories",
+        "responses": {
+          "201": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/definitions/allCategories"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/categories/{id}": {
@@ -448,6 +464,44 @@
         }
       }
     },
+    "/products/by-id/{id}/": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "ID of the product that we want to match",
+          "type": "string"
+        }
+      ],
+      "get": {
+        "tags": ["Product"],
+        "summary": "get a product by Id",
+
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string",
+                      "example": "تم التعديل بنجاح"
+                    },
+                    "product": {
+                      "type": "object",
+                      "$ref": "#definitions/product"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/products/{id}": {
       "parameters": [
         {
@@ -522,6 +576,198 @@
                       "example": "تم الحذف بنجاح"
                     }
                   }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/orders/": {
+      "post": {
+        "tags": ["Order"],
+        "summary": "add a new product to user cart",
+        "requestBody": {
+          "description": "Order Object",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/definitions/Order"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string",
+                      "example": "order added to your cart successfully"
+                    },
+                    "unConfirmedOrders": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/orders/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "ID of the product that we want to match",
+          "type": "string"
+        }
+      ],
+      "put": {
+        "tags": ["Order"],
+        "summary": "update an order quantity",
+        "requestBody": {
+          "description": "Order Object",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "quantity": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string",
+                      "example": "order updated successfully"
+                    },
+                    "order": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer"
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "example": "2023-06-01T07:04:45.780Z"
+                        },
+                        "price": {
+                          "type": "number"
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "DELIVERED",
+                            "INPROGRESS",
+                            "CONFIRMED",
+                            "CANCELLED"
+                          ]
+                        },
+                        "order": {
+                          "type": "object",
+                          "properties": {
+                            "product": {
+                              "type": "object",
+                              "$ref": "#/definitions/product"
+                            },
+                            "quantity": {
+                              "type": "integer"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/orders/{id}/": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "ID of the order that we want to remove",
+          "type": "string"
+        }
+      ],
+      "delete": {
+        "tags": ["Order"],
+        "summary": "remove an order from user cart",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string",
+                      "example": "order removed from the cart successfully"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/orders/bestSellers/": {
+      "get": {
+        "tags": ["Order"],
+        "summary": "get a best sellers products",
+        "responses": {
+          "201": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/definitions/BestSellers"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/products": {
+      "get": {
+        "tags": ["Product"],
+        "summary": "get all products",
+        "responses": {
+          "201": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/definitions/product"
                 }
               }
             }
@@ -759,6 +1005,90 @@
         "image": {
           "type": "file",
           "required": false
+        }
+      }
+    },
+    "Order": {
+      "type": "object",
+      "properties": {
+        "productId": {
+          "type": "integer"
+        },
+        "quantity": {
+          "type": "integer"
+        }
+      }
+    },
+    "BestSellers": {
+      "type": "object",
+      "properties": {
+        "users": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "role": {
+                "type": "string",
+                "example": "COMPANY"
+              },
+              "num": {
+                "type": "integer",
+                "example": "12"
+              }
+            }
+          }
+        },
+        "numProducts": {
+          "type": "integer",
+          "example": "144"
+        },
+        "numOrders": {
+          "type": "integer",
+          "example": "12"
+        },
+        "productsList": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "product": {
+                "$ref": "#/definitions/product"
+              },
+              "num_orders": {
+                "type": "integer"
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "allCategories": {
+      "type": "object",
+      "properties": {
+        "categories": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "number"
+              },
+              "nameEn": {
+                "type": "string"
+              },
+              "nameAr": {
+                "type": "string"
+              },
+              "subCategories": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "$ref": "#definitions/subCategory"
+                }
+              }
+            }
+          }
         }
       }
     },

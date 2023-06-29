@@ -50,4 +50,38 @@ const productUpload = multer({
   },
 });
 
-export { profileUpload, productUpload };
+//Setting storage engine for categories
+const categoryStorageEngine = multer.diskStorage({
+  destination: "./public/images/category",
+  filename: (req: any, file: any, cb: any) => {
+    cb(null, `${Date.now()}--${file.originalname}`);
+  },
+});
+
+//initializing  multer
+const categoryUpload = multer({
+  storage: categoryStorageEngine,
+  // limits: { fileSize: 10000000 },
+  fileFilter: (req, file, cb) => {
+    checkFileType(file, cb);
+  },
+});
+
+//Setting storage engine for subcategories
+const subCategoryStorageEngine = multer.diskStorage({
+  destination: "./public/images/sub-category",
+  filename: (req: any, file: any, cb: any) => {
+    cb(null, `${Date.now()}--${file.originalname}`);
+  },
+});
+
+//initializing  multer
+const subCategoryUpload = multer({
+  storage: subCategoryStorageEngine,
+  // limits: { fileSize: 10000000 },
+  fileFilter: (req, file, cb) => {
+    checkFileType(file, cb);
+  },
+});
+
+export { profileUpload, productUpload, categoryUpload, subCategoryUpload };

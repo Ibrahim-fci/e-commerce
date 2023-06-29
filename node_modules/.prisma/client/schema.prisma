@@ -8,6 +8,7 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  
 }
 
 model Profile {
@@ -32,7 +33,7 @@ model User {
   role     Role     @default(CLIENT)
   profile  Profile?
 
-  orders   User_Order_Product[]
+  orders   Cart[]
   products Product[]
 }
 
@@ -70,28 +71,31 @@ model Product {
   subCategoryId Int
   orders        Order[]
 }
-
 model Order {
   id       Int    @id @default(autoincrement())
   quantity Int    @default(1)
-  price    Float?
 
   product   Product              @relation(fields: [productId], references: [id])
   productId Int
-  orders    User_Order_Product[]
+  orders    Cart[]
 }
 
-model User_Order_Product {
+model Cart {
+  id       Int    @id @default(autoincrement())
+  
+
   order       Order       @relation(fields: [orderId], references: [id])
   orderId     Int
-  createdAt   DateTime    @default(now())
-  deliveredAt DateTime?
-  status      OrderStatus @default(INPROGRESS)
 
   user   User @relation(fields: [userId], references: [id])
   userId Int
+  
+  createdAt   DateTime    @default(now())
+  deliveredAt DateTime?
+  status      OrderStatus @default(INPROGRESS)
+  price    Float?
 
-  @@id([orderId, userId])
+
 }
 
 enum Role {
