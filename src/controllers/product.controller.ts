@@ -1,7 +1,7 @@
 import prisma from "../utils/prisma";
 import { host } from "../utils/host";
 import expressAsyncHandelar from "express-async-handler";
-import { Console } from "node:console";
+import slugify from "slugify";
 
 const addProduct = expressAsyncHandelar(async function (req: any, res: any) {
   //get user from request.user
@@ -181,8 +181,9 @@ async function allProduct(req: any, res: any) {
 }
 
 const productFilter = expressAsyncHandelar(async function (req: any, res: any) {
-  const { nameEn, nameAr, page, size, priceStart, priceEnd, category } =
+  let { nameEn, nameAr, page, size, priceStart, priceEnd, category } =
     req.query;
+  console.log(typeof String(nameEn).trim(), ";;;;;;");
   let subCategoriesIdes: [] = req.body.subCategoriesIdes;
   let flavourIdes: [] = req.body.flavourIdes;
 
@@ -206,15 +207,18 @@ const productFilter = expressAsyncHandelar(async function (req: any, res: any) {
       },
     });
 
-    return res.status(200).json({ products, productsNum });
+    return res.status(200).json({ filtered_products: products, productsNum });
   }
+
+  if (nameAr == "") nameAr = null;
+  if (nameEn == "") nameEn = null;
 
   // get all subCategories from categoryID
   const subCategoriesFromCategories = await getSubCatgoryListFromCategory(
     parseInt(category)
   );
 
-  if (priceStart || priceEnd) {
+  if ((priceStart && priceStart != "") || (priceEnd && priceEnd != "")) {
     const filtered_products = await priceFilter(
       subCategoriesIdes,
       subCategoriesFromCategories,
