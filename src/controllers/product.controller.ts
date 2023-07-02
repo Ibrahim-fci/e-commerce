@@ -1,6 +1,7 @@
 import prisma from "../utils/prisma";
 import { host } from "../utils/host";
 import expressAsyncHandelar from "express-async-handler";
+import { Console } from "node:console";
 
 const addProduct = expressAsyncHandelar(async function (req: any, res: any) {
   //get user from request.user
@@ -187,14 +188,15 @@ const productFilter = expressAsyncHandelar(async function (req: any, res: any) {
 
   // if there is no filters return all products
   if (
-    !nameEn &&
-    !nameAr &&
+    (!nameEn || nameEn === "") &&
+    (!nameAr || nameAr == "") &&
     !subCategoriesIdes &&
     !flavourIdes &&
-    !priceStart &&
-    !priceEnd &&
-    !category
+    (!priceStart || priceStart == "") &&
+    (!priceEnd || priceEnd == "") &&
+    (!category || category == "")
   ) {
+    const productsNum = await prisma.product.count();
     const products = await prisma.product.findMany({
       skip: parseInt(page) ? (parseInt(page) - 1) * size : 0,
       take: parseInt(size) ? parseInt(size) : 10,
@@ -204,7 +206,7 @@ const productFilter = expressAsyncHandelar(async function (req: any, res: any) {
       },
     });
 
-    return res.status(200).json({ products });
+    return res.status(200).json({ products, productsNum });
   }
 
   // get all subCategories from categoryID
@@ -225,7 +227,10 @@ const productFilter = expressAsyncHandelar(async function (req: any, res: any) {
       priceEnd
     );
 
-    return res.status(200).json({ filtered_products });
+    return res.status(200).json({
+      filtered_products: filtered_products.filtered_product,
+      productsNum: filtered_products.filtered_product_count,
+    });
   }
   //if there is a filters
   const filtered_product = await prisma.product.findMany({
@@ -262,6 +267,7 @@ const productFilter = expressAsyncHandelar(async function (req: any, res: any) {
         },
       ],
     },
+
     include: {
       sybCategory: true,
       flavour: true,
@@ -271,7 +277,46 @@ const productFilter = expressAsyncHandelar(async function (req: any, res: any) {
     take: parseInt(size) ? parseInt(size) : 10,
   });
 
-  return res.status(200).json({ filtered_product });
+  //filters_nums
+  const filtered_product_num = await prisma.product.count({
+    where: {
+      OR: [
+        {
+          subCategoryId: {
+            in: subCategoriesIdes ? subCategoriesIdes : [],
+          },
+        },
+        {
+          subCategoryId: {
+            in: subCategoriesFromCategories ? subCategoriesFromCategories : [],
+          },
+        },
+
+        {
+          flavourId: {
+            in: flavourIdes ? flavourIdes : [],
+          },
+        },
+        {
+          nameEn: {
+            contains: nameEn,
+            mode: "insensitive",
+          },
+        },
+
+        {
+          nameAr: {
+            contains: nameAr,
+            mode: "insensitive",
+          },
+        },
+      ],
+    },
+  });
+
+  return res
+    .status(200)
+    .json({ filtered_product, productsNum: filtered_product_num });
 });
 
 const getProductById = expressAsyncHandelar(async function (
@@ -391,7 +436,52 @@ const priceFilter = async function (
     take: parseInt(size) ? parseInt(size) : 10,
   });
 
-  return filtered_product;
+  const filtered_product_count = await prisma.product.count({
+    where: {
+      OR: [
+        {
+          subCategoryId: {
+            in: subCategoriesIdes ? subCategoriesIdes : [],
+          },
+        },
+        {
+          subCategoryId: {
+            in: subCategoriesFromCategories ? subCategoriesFromCategories : [],
+          },
+        },
+
+        {
+          flavourId: {
+            in: flavourIdes ? flavourIdes : [],
+          },
+        },
+        {
+          nameEn: {
+            contains: nameEn,
+            mode: "insensitive",
+          },
+        },
+        {
+          price: {
+            gte: priceStart ? parseInt(priceStart) : 0,
+            lte: priceEnd ? parseInt(priceEnd) : 1000000,
+          },
+        },
+
+        {
+          nameAr: {
+            contains: nameAr,
+            mode: "insensitive",
+          },
+        },
+      ],
+    },
+  });
+
+  return {
+    filtered_product,
+    filtered_product_count,
+  };
 };
 export {
   addProduct,
@@ -404,20 +494,24 @@ export {
 
 /// helper fuc
 const getSubCatgoryListFromCategory = async (categoryId: any) => {
-  let temp: number[] = [];
-  let subCategories = await prisma.category.findUnique({
-    where: {
-      id: parseInt(categoryId),
-    },
-    select: {
-      subCategories: true,
-    },
-  });
-
-  if (subCategories && subCategories.subCategories) {
-    temp = subCategories.subCategories.map((elem) => {
-      return elem.id;
+  try {
+    let temp: number[] = [];
+    let subCategories = await prisma.category.findUnique({
+      where: {
+        id: parseInt(categoryId),
+      },
+      select: {
+        subCategories: true,
+      },
     });
+
+    if (subCategories && subCategories.subCategories) {
+      temp = subCategories.subCategories.map((elem) => {
+        return elem.id;
+      });
+    }
+    return temp ? temp : [];
+  } catch {
+    return [];
   }
-  return temp ? temp : [];
 };
