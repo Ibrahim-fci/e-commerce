@@ -188,13 +188,13 @@ const productFilter = expressAsyncHandelar(async function (req: any, res: any) {
 
   // if there is no filters return all products
   if (
-    !nameEn &&
-    !nameAr &&
+    (!nameEn || nameEn === "") &&
+    (!nameAr || nameAr == "") &&
     !subCategoriesIdes &&
     !flavourIdes &&
-    !priceStart &&
-    !priceEnd &&
-    !category
+    (!priceStart || priceStart == "") &&
+    (!priceEnd || priceEnd == "") &&
+    (!category || category == "")
   ) {
     const productsNum = await prisma.product.count();
     const products = await prisma.product.findMany({
@@ -494,20 +494,24 @@ export {
 
 /// helper fuc
 const getSubCatgoryListFromCategory = async (categoryId: any) => {
-  let temp: number[] = [];
-  let subCategories = await prisma.category.findUnique({
-    where: {
-      id: parseInt(categoryId),
-    },
-    select: {
-      subCategories: true,
-    },
-  });
-
-  if (subCategories && subCategories.subCategories) {
-    temp = subCategories.subCategories.map((elem) => {
-      return elem.id;
+  try {
+    let temp: number[] = [];
+    let subCategories = await prisma.category.findUnique({
+      where: {
+        id: parseInt(categoryId),
+      },
+      select: {
+        subCategories: true,
+      },
     });
+
+    if (subCategories && subCategories.subCategories) {
+      temp = subCategories.subCategories.map((elem) => {
+        return elem.id;
+      });
+    }
+    return temp ? temp : [];
+  } catch {
+    return [];
   }
-  return temp ? temp : [];
 };
