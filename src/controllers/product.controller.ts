@@ -318,9 +318,10 @@ const productFilter = expressAsyncHandelar(async function (req: any, res: any) {
     },
   });
 
-  return res
-    .status(200)
-    .json({ filtered_product, productsNum: filtered_product_num });
+  return res.status(200).json({
+    filtered_products: filtered_product,
+    productsNum: filtered_product_num,
+  });
 });
 
 const getProductById = expressAsyncHandelar(async function (
