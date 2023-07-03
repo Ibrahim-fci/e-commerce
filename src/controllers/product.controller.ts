@@ -2,6 +2,7 @@ import prisma from "../utils/prisma";
 import { host } from "../utils/host";
 import expressAsyncHandelar from "express-async-handler";
 import slugify from "slugify";
+import converter from "../utils/convertStrArrToIntArr";
 
 const addProduct = expressAsyncHandelar(async function (req: any, res: any) {
   //get user from request.user
@@ -181,11 +182,34 @@ async function allProduct(req: any, res: any) {
 }
 
 const productFilter = expressAsyncHandelar(async function (req: any, res: any) {
-  let { nameEn, nameAr, page, size, priceStart, priceEnd, category } =
-    req.query;
-  console.log(typeof String(nameEn).trim(), ";;;;;;");
-  let subCategoriesIdes: [] = req.body.subCategoriesIdes;
-  let flavourIdes: [] = req.body.flavourIdes;
+  let {
+    nameEn,
+    nameAr,
+    page,
+    size,
+    priceStart,
+    priceEnd,
+    category,
+    subCategoriesIdes,
+    flavourIdes,
+  } = req.query;
+
+  if (subCategoriesIdes) {
+    subCategoriesIdes = subCategoriesIdes.split(",");
+    subCategoriesIdes = await converter(subCategoriesIdes);
+  } else {
+    subCategoriesIdes = [];
+  }
+
+  if (flavourIdes) {
+    flavourIdes = flavourIdes.split(",");
+    flavourIdes = await converter(flavourIdes);
+  } else {
+    flavourIdes = [];
+  }
+
+  // let subCategoriesIdes: [] = req.body.subCategoriesIdes;
+  // let flavourIdes: [] = req.body.flavourIdes;
 
   // if there is no filters return all products
   if (
@@ -195,7 +219,7 @@ const productFilter = expressAsyncHandelar(async function (req: any, res: any) {
     !flavourIdes &&
     (!priceStart || priceStart == "") &&
     (!priceEnd || priceEnd == "") &&
-    (!category || category == "")
+    !category
   ) {
     const productsNum = await prisma.product.count();
     const products = await prisma.product.findMany({
