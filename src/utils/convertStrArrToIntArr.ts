@@ -1,5 +1,4 @@
 const converter = async (arr: []) => {
-  console.log(arr, "arr");
   if (!arr) return [];
   try {
     let temp: number[] = [];

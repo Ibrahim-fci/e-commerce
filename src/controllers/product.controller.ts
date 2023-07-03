@@ -219,7 +219,7 @@ const productFilter = expressAsyncHandelar(async function (req: any, res: any) {
     !flavourIdes &&
     (!priceStart || priceStart == "") &&
     (!priceEnd || priceEnd == "") &&
-    !category
+    (!category || category == "")
   ) {
     const productsNum = await prisma.product.count();
     const products = await prisma.product.findMany({
@@ -234,8 +234,8 @@ const productFilter = expressAsyncHandelar(async function (req: any, res: any) {
     return res.status(200).json({ filtered_products: products, productsNum });
   }
 
-  if (nameAr == "") nameAr = null;
-  if (nameEn == "") nameEn = null;
+  if (!nameAr || nameAr == "") nameAr = undefined;
+  if (!nameEn || nameEn == "") nameEn = undefined;
 
   // get all subCategories from categoryID
   const subCategoriesFromCategories = await getSubCatgoryListFromCategory(
