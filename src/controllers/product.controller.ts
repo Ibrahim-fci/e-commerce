@@ -213,10 +213,10 @@ const productFilter = expressAsyncHandelar(async function (req: any, res: any) {
 
   // if there is no filters return all products
   if (
-    (!nameEn || nameEn === "") &&
+    (!nameEn || nameEn == "") &&
     (!nameAr || nameAr == "") &&
-    !subCategoriesIdes &&
-    !flavourIdes &&
+    (!subCategoriesIdes || subCategoriesIdes.length == 0) &&
+    (!flavourIdes || flavourIdes.length == 0) &&
     (!priceStart || priceStart == "") &&
     (!priceEnd || priceEnd == "") &&
     (!category || category == "")
@@ -231,7 +231,9 @@ const productFilter = expressAsyncHandelar(async function (req: any, res: any) {
       },
     });
 
-    return res.status(200).json({ filtered_products: products, productsNum });
+    return res
+      .status(200)
+      .json({ filtered_products: products, productsNum: productsNum });
   }
 
   if (!nameAr || nameAr == "") nameAr = undefined;
