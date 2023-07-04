@@ -1,178 +1,241 @@
+import { Cart, CartItem, Prisma } from "@prisma/client";
 import prisma from "../utils/prisma";
 import expressAsyncHandelar from "express-async-handler";
 
-async function makeOrder(req: any, res: any) {
+const addToCart = expressAsyncHandelar(async (req: any, res: any) => {
+  // @desc getUserFrom Token
   const user = req.user;
 
-  try {
-    let product = await prisma.product.findUnique({
-      where: {
-        id: parseInt(req.body.productId),
-      },
-    });
+  // @desc getProduct by id
+  const productId = parseInt(req.body.productId);
+  const quantity = parseInt(req.body.quantity);
 
-    if (!product) return res.status(404).json({ msg: "product not found!" });
+  const product = await prisma.product.findUnique({
+    where: {
+      id: productId,
+    },
+  });
 
-    //TODO: Check if There is Enough num of product quntity
+  if (!product)
+    return res.json({ msg: `product with id ${productId} not found...` });
 
-    //create the order
+  // get userCart if exist or create a new cart
+  let userCart = await prisma.cart.findFirst({
+    where: {
+      userId: user.id,
+    },
+    include: { cartItems: true },
+  });
 
-    const order = await prisma.order.create({
+  if (!userCart) {
+    userCart = await prisma.cart.create({
       data: {
-        productId: product.id,
-        quantity: parseInt(req.body.quantity),
-      },
-    });
-
-    //add order to user cart
-    let total = product.price * order.quantity;
-
-    const addToCart = await prisma.cart.create({
-      data: {
-        orderId: order.id,
         userId: user.id,
-        price: total,
       },
+      include: { cartItems: true },
     });
-
-    // get num_of_user_orders
-    let userOrdersCount = await prisma.cart.aggregate({
-      _count: {
-        orderId: true,
-      },
-      where: {
-        userId: user.id,
-        status: "INPROGRESS",
-      },
-      orderBy: {
-        price: "desc",
-      },
-    });
-
-    return res.status(200).json({
-      msg: "order added to your cart successfully",
-      unConfirmedOrders: userOrdersCount._count.orderId,
-    });
-  } catch {
-    return res.status(400).json({ msg: "somthing went wrong!!!" });
   }
-}
 
-async function updateOrder(req: any, res: any) {
-  const user = req.user;
+  // create a new cartItem
+  const cartItem = await prisma.cartItem.create({
+    data: {
+      cartId: userCart.id,
+      productId: product.id,
+      quantity: quantity,
+      price: quantity * product.price,
+    },
+  });
 
-  try {
-    const order = await prisma.cart.findUnique({
-      where: {
-        id: parseInt(req.params.id),
-      },
-    });
+  let totalCartPrice = userCart.totalCartPrice
+    ? userCart.totalCartPrice + quantity * product.price
+    : cartItem.price;
 
-    if (!order)
-      return res.status(404).json({ msg: "order not found in your cart" });
-    if (order.userId != user.id && user.role != "Admin")
-      return res
-        .status(400)
-        .json({ msg: "you have no permission to update order" });
+  const cart = await prisma.cart.update({
+    where: { userId: user.id },
+    data: {
+      totalCartPrice: totalCartPrice,
+    },
+    include: { cartItems: true },
+  });
 
-    //update order quantity
-    const updatedOrder = await prisma.order.update({
-      where: {
-        id: order.orderId,
-      },
-      data: {
-        quantity: parseInt(req.body.quantity),
-      },
-      include: {
-        product: true,
-      },
-    });
+  return res.json({
+    msg: "product added to cart successfully",
+    cartLength: cart?.cartItems.length || 0,
+  });
+});
 
-    //TODO: Check if There is Enough num of product quntity
+// async function makeOrder(req: any, res: any) {
+//   const user = req.user;
 
-    let total = updatedOrder.product.price * updatedOrder.quantity;
-    const updatedCart = await prisma.cart.update({
-      where: {
-        id: parseInt(req.params.id),
-      },
-      data: {
-        price: total,
-      },
-      select: {
-        id: true,
-        order: {
-          select: {
-            product: {
-              select: {
-                nameEn: true,
-                price: true,
-                descriptionEn: true,
-                url: true,
-              },
-            },
-            quantity: true,
-          },
-        },
-        createdAt: true,
-        status: true,
-        price: true,
-      },
-    });
+//   try {
+//     let product = await prisma.product.findUnique({
+//       where: {
+//         id: parseInt(req.body.productId),
+//       },
+//     });
 
-    return res
-      .status(200)
-      .json({ msg: "order updated successfully", order: updatedCart });
-  } catch {
-    return res.status(500).json({ msg: "somthing went wrong" });
-  }
-}
+//     if (!product) return res.status(404).json({ msg: "product not found!" });
 
-async function deleteOrder(req: any, res: any) {
-  const user = req.user;
+//     //TODO: Check if There is Enough num of product quntity
 
-  try {
-    const order = await prisma.cart.findUnique({
-      where: {
-        id: parseInt(req.params.id),
-      },
-    });
+//     //create the order
 
-    if (!order)
-      return res.status(404).json({ msg: "order not found in your cart" });
+//     const order = await prisma.order.create({
+//       data: {
+//         productId: product.id,
+//         quantity: parseInt(req.body.quantity),
+//       },
+//     });
 
-    if (order.userId != user.id && user.role != "Admin")
-      return res
-        .status(400)
-        .json({ msg: "you have no permission to delete order" });
+//     //add order to user cart
+//     let total = product.price * order.quantity;
 
-    let orderId = order.orderId;
+//     const addToCart = await prisma.cart.create({
+//       data: {
+//         orderId: order.id,
+//         userId: user.id,
+//         price: total,
+//       },
+//     });
 
-    // firest remove order from user cart
-    await prisma.cart.delete({
-      where: {
-        id: parseInt(req.params.id),
-      },
-    });
+//     // get num_of_user_orders
+//     let userOrdersCount = await prisma.cart.aggregate({
+//       _count: {
+//         orderId: true,
+//       },
+//       where: {
+//         userId: user.id,
+//         status: "INPROGRESS",
+//       },
+//       orderBy: {
+//         price: "desc",
+//       },
+//     });
 
-    // then delete order
-    await prisma.order.delete({
-      where: {
-        id: orderId,
-      },
-    });
+//     return res.status(200).json({
+//       msg: "order added to your cart successfully",
+//       unConfirmedOrders: userOrdersCount._count.orderId,
+//     });
+//   } catch {
+//     return res.status(400).json({ msg: "somthing went wrong!!!" });
+//   }
+// }
 
-    // TODO: Add Prouduct Quantity
-    return res
-      .status(200)
-      .json({ msg: "order removed from the cart successfully" });
-  } catch {
-    return res.status(500).json({ msg: "somthing went wrong" });
-  }
-}
+// async function updateOrder(req: any, res: any) {
+//   const user = req.user;
+
+//   try {
+//     const order = await prisma.cart.findUnique({
+//       where: {
+//         id: parseInt(req.params.id),
+//       },
+//     });
+
+//     if (!order)
+//       return res.status(404).json({ msg: "order not found in your cart" });
+//     if (order.userId != user.id && user.role != "Admin")
+//       return res
+//         .status(400)
+//         .json({ msg: "you have no permission to update order" });
+
+//     //update order quantity
+//     const updatedOrder = await prisma.order.update({
+//       where: {
+//         id: order.orderId,
+//       },
+//       data: {
+//         quantity: parseInt(req.body.quantity),
+//       },
+//       include: {
+//         product: true,
+//       },
+//     });
+
+//     //TODO: Check if There is Enough num of product quntity
+
+//     let total = updatedOrder.product.price * updatedOrder.quantity;
+//     const updatedCart = await prisma.cart.update({
+//       where: {
+//         id: parseInt(req.params.id),
+//       },
+//       data: {
+//         price: total,
+//       },
+//       select: {
+//         id: true,
+//         order: {
+//           select: {
+//             product: {
+//               select: {
+//                 nameEn: true,
+//                 price: true,
+//                 descriptionEn: true,
+//                 url: true,
+//               },
+//             },
+//             quantity: true,
+//           },
+//         },
+//         createdAt: true,
+//         status: true,
+//         price: true,
+//       },
+//     });
+
+//     return res
+//       .status(200)
+//       .json({ msg: "order updated successfully", order: updatedCart });
+//   } catch {
+//     return res.status(500).json({ msg: "somthing went wrong" });
+//   }
+// }
+
+// async function deleteOrder(req: any, res: any) {
+//   const user = req.user;
+
+//   try {
+//     const order = await prisma.cart.findUnique({
+//       where: {
+//         id: parseInt(req.params.id),
+//       },
+//     });
+
+//     if (!order)
+//       return res.status(404).json({ msg: "order not found in your cart" });
+
+//     if (order.userId != user.id && user.role != "Admin")
+//       return res
+//         .status(400)
+//         .json({ msg: "you have no permission to delete order" });
+
+//     let orderId = order.orderId;
+
+//     // firest remove order from user cart
+//     await prisma.cart.delete({
+//       where: {
+//         id: parseInt(req.params.id),
+//       },
+//     });
+
+//     // then delete order
+//     await prisma.order.delete({
+//       where: {
+//         id: orderId,
+//       },
+//     });
+
+//     // TODO: Add Prouduct Quantity
+//     return res
+//       .status(200)
+//       .json({ msg: "order removed from the cart successfully" });
+//   } catch {
+//     return res.status(500).json({ msg: "somthing went wrong" });
+//   }
+// }
 
 async function bestSellers(req: any, res: any) {
   // get best sold products
-  let productsList = await getproducts(req);
+  // let productsList = await getproducts(req);
 
   // get num of users
   let usersNum = await userRoleHandeler();
@@ -191,12 +254,12 @@ async function bestSellers(req: any, res: any) {
     users: usersNum,
     numProducts: numProducts,
     numOrders: numOrders,
-    productsList: productsList,
+    // productsList: productsList,
     categories: categories,
   });
 }
 
-export { makeOrder, updateOrder, deleteOrder, bestSellers };
+export { addToCart, bestSellers };
 
 async function userRoleHandeler() {
   let usersNum: any[] = [];
@@ -215,45 +278,45 @@ async function userRoleHandeler() {
   return usersNum;
 }
 
-async function getproducts(req: any) {
-  let productsList: any[] = [];
-  let page = req.query.page;
-  let size = req.query.size;
+// async function getproducts(req: any) {
+//   let productsList: any[] = [];
+//   let page = req.query.page;
+//   let size = req.query.size;
 
-  let orders = await prisma.order.groupBy({
-    by: ["productId", "createdAt"],
+//   let orders = await prisma.order.groupBy({
+//     by: ["productId", "createdAt"],
 
-    _sum: {
-      quantity: true,
-    },
-    orderBy: {
-      _sum: {
-        quantity: "desc",
-      },
-    },
-    skip: parseInt(page) ? (parseInt(page) - 1) * size : 0,
-    take: parseInt(size) ? parseInt(size) : 10,
-  });
+//     _sum: {
+//       quantity: true,
+//     },
+//     orderBy: {
+//       _sum: {
+//         quantity: "desc",
+//       },
+//     },
+//     skip: parseInt(page) ? (parseInt(page) - 1) * size : 0,
+//     take: parseInt(size) ? parseInt(size) : 10,
+//   });
 
-  //get product data
-  for (let i = 0; i < orders.length; i++) {
-    let product = await prisma.product.findUnique({
-      where: {
-        id: orders[i].productId,
-      },
-      include: {
-        sybCategory: true,
-      },
-    });
+//   //get product data
+//   for (let i = 0; i < orders.length; i++) {
+//     let product = await prisma.product.findUnique({
+//       where: {
+//         id: orders[i].productId,
+//       },
+//       include: {
+//         sybCategory: true,
+//       },
+//     });
 
-    productsList.push({
-      product: product,
-      num_orders: orders[i]._sum.quantity,
-    });
-  }
+//     productsList.push({
+//       product: product,
+//       num_orders: orders[i]._sum.quantity,
+//     });
+//   }
 
-  return productsList;
-}
+//   return productsList;
+// }
 
 const getCategories = async () => {
   const categories = await prisma.category.findMany({

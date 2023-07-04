@@ -523,7 +523,7 @@ export {
   getProductById,
 };
 
-/// helper fuc
+/// helper func
 const getSubCatgoryListFromCategory = async (categoryId: any) => {
   try {
     let temp: number[] = [];
