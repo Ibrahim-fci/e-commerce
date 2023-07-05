@@ -129,7 +129,9 @@ model CartItem {
   cartId Int
 
   createdAt   DateTime    @default(now())
+  sold    Boolean         @default(false)
   
+  orderId  Int?
 
 
 }

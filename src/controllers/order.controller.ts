@@ -41,7 +41,7 @@ const addToCart = expressAsyncHandelar(async (req: any, res: any) => {
     data: {
       totalCartPrice: totalCartPrice,
     },
-    include: { cartItems: true },
+    include: { cartItems: { where: { sold: false } } },
   });
 
   return res.json({
@@ -157,7 +157,7 @@ const createOrder = expressAsyncHandelar(async (req: any, res: any) => {
   // @desc get userCart
   const cart = await prisma.cart.findUnique({
     where: { userId: user.id },
-    include: { cartItems: true },
+    include: { cartItems: { where: { sold: false } } },
   });
 
   if (!cart) return res.status(400).json({ msg: "cart is empty" });
@@ -216,10 +216,13 @@ const createOrder = expressAsyncHandelar(async (req: any, res: any) => {
           : product.quantity,
       },
     });
+
+    await prisma.cartItem.update({
+      where: { id: cartItem.id },
+      data: { sold: true, orderId: order.id },
+    });
   });
 
-  // @desc clear userCart
-  await prisma.cartItem.deleteMany({ where: { cartId: cart.id } });
   // @desc update cart total price
   await prisma.cart.update({
     where: { userId: user.id },
