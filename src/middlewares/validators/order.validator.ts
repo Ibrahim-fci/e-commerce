@@ -6,10 +6,15 @@ const addToCartValidator = [
   body("quantity").isInt(),
   validatorMiddeleware,
 ];
-const updateOrderValidator = [
+const updateCartItemValidator = [
   check("quantity").isInt(),
   check("id").isInt(),
   validatorMiddeleware,
 ];
 
-export { addToCartValidator, updateOrderValidator };
+const createOrderValidator = [
+  check("deliveryAddress").isString(),
+  validatorMiddeleware,
+];
+
+export { addToCartValidator, updateCartItemValidator, createOrderValidator };

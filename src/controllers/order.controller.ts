@@ -147,9 +147,93 @@ const deleteCartItem = expressAsyncHandelar(async (req: any, res: any) => {
   return res.status(200).json({ msg: "cartItem deleted successfully" });
 });
 
+const createOrder = expressAsyncHandelar(async (req: any, res: any) => {
+  // @desc getUserFrom Token
+  const user = req.user;
+
+  // @desc get body data
+  const deliveryAddress = req.body.deliveryAddress;
+
+  // @desc get userCart
+  const cart = await prisma.cart.findUnique({
+    where: { userId: user.id },
+    include: { cartItems: true },
+  });
+
+  if (!cart) return res.status(400).json({ msg: "cart is empty" });
+  if (cart?.cartItems.length == 0)
+    return res.status(400).json({ msg: "your cart is empty" });
+
+  // @desc create an order
+  const order = await prisma.order.create({
+    data: {
+      userId: user.id,
+      cartId: cart.id,
+      deliveryAddress: deliveryAddress,
+      totalOrderPrice: cart.totalCartPrice,
+    },
+    include: {
+      user: {
+        select: {
+          email: true,
+          fullName: true,
+          profile: {
+            select: {
+              fName: true,
+              lName: true,
+              address: true,
+              city: true,
+              country: true,
+            },
+          },
+        },
+      },
+      cart: {
+        include: {
+          cartItems: true,
+        },
+      },
+    },
+  });
+
+  // @desc decrement products quantity
+  // @dec update product sold num
+  cart.cartItems.map(async (cartItem) => {
+    let product = await prisma.product.findUnique({
+      where: {
+        id: cartItem.productId,
+      },
+    });
+
+    if (!product) return;
+
+    await prisma.product.update({
+      where: { id: cartItem.productId },
+      data: {
+        sold: product?.sold + cartItem.quantity,
+        quantity: product.quantity
+          ? product.quantity - cartItem.quantity
+          : product.quantity,
+      },
+    });
+  });
+
+  // @desc clear userCart
+  await prisma.cartItem.deleteMany({ where: { cartId: cart.id } });
+  // @desc update cart total price
+  await prisma.cart.update({
+    where: { userId: user.id },
+    data: { totalCartPrice: 0 },
+  });
+
+  return res
+    .status(200)
+    .json({ msg: "order created successfully", order: order });
+});
+
 async function bestSellers(req: any, res: any) {
   // get best sold products
-  // let productsList = await getproducts(req);
+  let productsList = await getproducts(req);
 
   // get num of users
   let usersNum = await userRoleHandeler();
@@ -168,13 +252,14 @@ async function bestSellers(req: any, res: any) {
     users: usersNum,
     numProducts: numProducts,
     numOrders: numOrders,
-    // productsList: productsList,
+    productsList: productsList,
     categories: categories,
   });
 }
 
-export { addToCart, updateCartItem, deleteCartItem, bestSellers };
+export { addToCart, updateCartItem, deleteCartItem, createOrder, bestSellers };
 
+// @desc Helpper func......
 async function userRoleHandeler() {
   let usersNum: any[] = [];
 
@@ -193,43 +278,20 @@ async function userRoleHandeler() {
 }
 
 async function getproducts(req: any) {
-  let productsList: any[] = [];
   let page = req.query.page;
   let size = req.query.size;
 
-  let orders = await prisma.cartItem.groupBy({
-    by: ["productId", "createdAt"],
-
-    _sum: {
-      quantity: true,
-    },
+  let products = await prisma.product.findMany({
     orderBy: {
-      _sum: {
-        quantity: "desc",
-      },
+      sold: "desc",
     },
+    include: { sybCategory: true, flavour: true },
+
     skip: parseInt(page) ? (parseInt(page) - 1) * size : 0,
     take: parseInt(size) ? parseInt(size) : 10,
   });
 
-  //get product data
-  for (let i = 0; i < orders.length; i++) {
-    let product = await prisma.product.findUnique({
-      where: {
-        id: orders[i].productId,
-      },
-      include: {
-        sybCategory: true,
-      },
-    });
-
-    productsList.push({
-      product: product,
-      num_orders: orders[i]._sum.quantity,
-    });
-  }
-
-  return productsList;
+  return products;
 }
 
 const getCategories = async () => {
