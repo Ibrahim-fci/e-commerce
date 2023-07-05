@@ -1,11 +1,15 @@
-import { body } from "express-validator";
+import { body, check } from "express-validator";
 import validatorMiddeleware from "./validationResult";
 
-const addOrderValidator = [
+const addToCartValidator = [
   body("productId").isInt(),
   body("quantity").isInt(),
   validatorMiddeleware,
 ];
-const updateOrderValidator = [body("quantity").isInt(), validatorMiddeleware];
+const updateOrderValidator = [
+  check("quantity").isInt(),
+  check("id").isInt(),
+  validatorMiddeleware,
+];
 
-export { addOrderValidator, updateOrderValidator };
+export { addToCartValidator, updateOrderValidator };
