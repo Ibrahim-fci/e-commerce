@@ -11,12 +11,16 @@ import {
   updateCartItem,
   deleteCartItem,
   createOrder,
+  getCartItems,
   bestSellers,
+  cartItemsNum,
 } from "../controllers/order.controller";
 
 const router = express.Router();
 
 router.get("/bestSellers/", bestSellers);
+router.get("/cart/", authorize, getCartItems);
+router.get("/cart-items-num/", authorize, cartItemsNum);
 router.post("/addToCart/", authorize, addToCartValidator, addToCart);
 router.put(
   "/cart-items/:id",

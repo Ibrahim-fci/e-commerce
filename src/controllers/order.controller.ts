@@ -260,7 +260,49 @@ async function bestSellers(req: any, res: any) {
   });
 }
 
-export { addToCart, updateCartItem, deleteCartItem, createOrder, bestSellers };
+const getCartItems = expressAsyncHandelar(async (req: any, res: any) => {
+  // @desc getUserFrom Token
+  const user = req.user;
+
+  // @desc get userCart
+  const cart = await prisma.cart.findUnique({
+    where: { userId: user.id },
+    include: {
+      cartItems: {
+        where: { sold: false },
+        include: { product: { include: { sybCategory: true, flavour: true } } },
+      },
+    },
+  });
+
+  if (!cart) return res.status(400).json({ msg: "cart is empty" });
+  return res.status(200).json({ cart: cart });
+});
+
+const cartItemsNum = expressAsyncHandelar(async (req: any, res: any) => {
+  // @desc getUserFrom Token
+  const user = req.user;
+
+  // @desc get userCart
+  const cart = await prisma.cart.findUnique({
+    where: { userId: user.id },
+    include: { cartItems: { where: { sold: false } } },
+  });
+
+  if (!cart) return res.status(400).json({ cartLength: 0 });
+
+  return res.status(200).json({ cartLength: cart.cartItems.length });
+});
+
+export {
+  addToCart,
+  updateCartItem,
+  deleteCartItem,
+  createOrder,
+  getCartItems,
+  bestSellers,
+  cartItemsNum,
+};
 
 // @desc Helpper func......
 async function userRoleHandeler() {
