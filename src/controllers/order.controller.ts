@@ -288,8 +288,8 @@ const cartItemsNum = expressAsyncHandelar(async (req: any, res: any) => {
     where: { userId: user.id },
     include: { cartItems: { where: { sold: false } } },
   });
-
-  if (!cart) return res.status(400).json({ cartLength: 0 });
+  // return 200 with cartLength:0      alaa commmit 🫡
+  if (!cart) return res.status(200).json({ cartLength: 0 });
 
   return res.status(200).json({ cartLength: cart.cartItems.length });
 });
