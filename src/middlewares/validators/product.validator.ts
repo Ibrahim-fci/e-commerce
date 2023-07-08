@@ -41,19 +41,20 @@ const updateProductValidator = [
 ];
 
 const productFilter = [
-  check("flavourIdes").isArray().withMessage("").optional(),
-  check("flavourIdes.*")
-    .not()
-    .isString()
-    .isInt()
-    .withMessage("flavourIdes must be array of integers"),
+  // check("flavourIdes").isArray().withMessage("").optional(),
+  // check("flavourIdes.*")
+  //   .not()
+  //   .isString()
+  //   .isInt()
+  //   .withMessage("flavourIdes must be array of integers"),
 
-  check("subCategoriesIdes").isArray().withMessage("").optional(),
-  check("subCategoriesIdes.*")
-    .not()
-    .isString()
-    .isInt()
-    .withMessage("subCategoriesIdes must be array of integers"),
+  // check("subCategoriesIdes").isArray().withMessage("").optional(),
+  // check("subCategoriesIdes.*")
+  //   .not()
+  //   .isString()
+  //   .isInt()
+  //   .withMessage("subCategoriesIdes must be array of integers"),
+
   validatorMiddeleware,
 ];
 

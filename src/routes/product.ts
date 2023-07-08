@@ -35,4 +35,11 @@ router.get(
   productValidator.productFilter,
   productController.productFilter
 );
+
+router.get(
+  "/user-products-filter/",
+  authorize,
+  productValidator.productFilter,
+  productController.userProducts
+);
 export default router;

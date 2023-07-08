@@ -1,7 +1,8 @@
 import prisma from "../utils/prisma";
 import { host } from "../utils/host";
 import expressAsyncHandelar from "express-async-handler";
-import { Console } from "node:console";
+import slugify from "slugify";
+import converter from "../utils/convertStrArrToIntArr";
 
 const addProduct = expressAsyncHandelar(async function (req: any, res: any) {
   //get user from request.user
@@ -181,17 +182,41 @@ async function allProduct(req: any, res: any) {
 }
 
 const productFilter = expressAsyncHandelar(async function (req: any, res: any) {
-  const { nameEn, nameAr, page, size, priceStart, priceEnd, category } =
-    req.query;
-  let subCategoriesIdes: [] = req.body.subCategoriesIdes;
-  let flavourIdes: [] = req.body.flavourIdes;
+  let {
+    nameEn,
+    nameAr,
+    page,
+    size,
+    priceStart,
+    priceEnd,
+    category,
+    subCategoriesIdes,
+    flavourIdes,
+  } = req.query;
+
+  if (subCategoriesIdes) {
+    subCategoriesIdes = subCategoriesIdes.split(",");
+    subCategoriesIdes = await converter(subCategoriesIdes);
+  } else {
+    subCategoriesIdes = [];
+  }
+
+  if (flavourIdes) {
+    flavourIdes = flavourIdes.split(",");
+    flavourIdes = await converter(flavourIdes);
+  } else {
+    flavourIdes = [];
+  }
+
+  // let subCategoriesIdes: [] = req.body.subCategoriesIdes;
+  // let flavourIdes: [] = req.body.flavourIdes;
 
   // if there is no filters return all products
   if (
-    (!nameEn || nameEn === "") &&
+    (!nameEn || nameEn == "") &&
     (!nameAr || nameAr == "") &&
-    !subCategoriesIdes &&
-    !flavourIdes &&
+    (!subCategoriesIdes || subCategoriesIdes.length == 0) &&
+    (!flavourIdes || flavourIdes.length == 0) &&
     (!priceStart || priceStart == "") &&
     (!priceEnd || priceEnd == "") &&
     (!category || category == "")
@@ -206,15 +231,20 @@ const productFilter = expressAsyncHandelar(async function (req: any, res: any) {
       },
     });
 
-    return res.status(200).json({ products, productsNum });
+    return res
+      .status(200)
+      .json({ filtered_products: products, productsNum: productsNum });
   }
+
+  if (!nameAr || nameAr == "") nameAr = undefined;
+  if (!nameEn || nameEn == "") nameEn = undefined;
 
   // get all subCategories from categoryID
   const subCategoriesFromCategories = await getSubCatgoryListFromCategory(
     parseInt(category)
   );
 
-  if (priceStart || priceEnd) {
+  if ((priceStart && priceStart != "") || (priceEnd && priceEnd != "")) {
     const filtered_products = await priceFilter(
       subCategoriesIdes,
       subCategoriesFromCategories,
@@ -314,9 +344,10 @@ const productFilter = expressAsyncHandelar(async function (req: any, res: any) {
     },
   });
 
-  return res
-    .status(200)
-    .json({ filtered_product, productsNum: filtered_product_num });
+  return res.status(200).json({
+    filtered_products: filtered_product,
+    productsNum: filtered_product_num,
+  });
 });
 
 const getProductById = expressAsyncHandelar(async function (
@@ -373,6 +404,182 @@ const getProductById = expressAsyncHandelar(async function (
   });
 
   return res.status(200).json({ product, relatedProducts: filtered_products });
+});
+
+const userProducts = expressAsyncHandelar(async function (req: any, res: any) {
+  // @desc get user
+  const user = req.user;
+  console.log(user.id, "--------------");
+
+  let {
+    nameEn,
+    nameAr,
+    page,
+    size,
+    priceStart,
+    priceEnd,
+    category,
+    subCategoriesIdes,
+    flavourIdes,
+  } = req.query;
+
+  if (subCategoriesIdes) {
+    subCategoriesIdes = subCategoriesIdes.split(",");
+    subCategoriesIdes = await converter(subCategoriesIdes);
+  } else {
+    subCategoriesIdes = [];
+  }
+
+  if (flavourIdes) {
+    flavourIdes = flavourIdes.split(",");
+    flavourIdes = await converter(flavourIdes);
+  } else {
+    flavourIdes = [];
+  }
+
+  // let subCategoriesIdes: [] = req.body.subCategoriesIdes;
+  // let flavourIdes: [] = req.body.flavourIdes;
+
+  // if there is no filters return all products
+  if (
+    (!nameEn || nameEn == "") &&
+    (!nameAr || nameAr == "") &&
+    (!subCategoriesIdes || subCategoriesIdes.length == 0) &&
+    (!flavourIdes || flavourIdes.length == 0) &&
+    (!priceStart || priceStart == "") &&
+    (!priceEnd || priceEnd == "") &&
+    (!category || category == "")
+  ) {
+    const products = await prisma.product.findMany({
+      where: { userId: user.id },
+      skip: parseInt(page) ? (parseInt(page) - 1) * size : 0,
+      take: parseInt(size) ? parseInt(size) : 10,
+      include: {
+        sybCategory: true,
+        flavour: true,
+      },
+    });
+
+    return res
+      .status(200)
+      .json({ filtered_products: products, productsNum: products.length });
+  }
+
+  if (!nameAr || nameAr == "") nameAr = undefined;
+  if (!nameEn || nameEn == "") nameEn = undefined;
+
+  // get all subCategories from categoryID
+  const subCategoriesFromCategories = await getSubCatgoryListFromCategory(
+    parseInt(category)
+  );
+
+  if ((priceStart && priceStart != "") || (priceEnd && priceEnd != "")) {
+    const filtered_products = await userProductPriceFilter(
+      subCategoriesIdes,
+      subCategoriesFromCategories,
+      flavourIdes,
+      nameEn,
+      page,
+      size,
+      nameAr,
+      priceStart,
+      priceEnd,
+      user.id
+    );
+
+    return res.status(200).json({
+      filtered_products: filtered_products.filtered_product,
+      productsNum: filtered_products.filtered_product_count,
+    });
+  }
+  //if there is a filters
+  const filtered_product = await prisma.product.findMany({
+    where: {
+      userId: user.id,
+      OR: [
+        {
+          subCategoryId: {
+            in: subCategoriesIdes ? subCategoriesIdes : [],
+          },
+        },
+        {
+          subCategoryId: {
+            in: subCategoriesFromCategories ? subCategoriesFromCategories : [],
+          },
+        },
+
+        {
+          flavourId: {
+            in: flavourIdes ? flavourIdes : [],
+          },
+        },
+        {
+          nameEn: {
+            contains: nameEn,
+            mode: "insensitive",
+          },
+        },
+
+        {
+          nameAr: {
+            contains: nameAr,
+            mode: "insensitive",
+          },
+        },
+      ],
+    },
+
+    include: {
+      sybCategory: true,
+      flavour: true,
+    },
+
+    skip: parseInt(page) ? (parseInt(page) - 1) * size : 0,
+    take: parseInt(size) ? parseInt(size) : 10,
+  });
+
+  //filters_nums
+  const filtered_product_num = await prisma.product.count({
+    where: {
+      userId: user.id,
+      OR: [
+        {
+          subCategoryId: {
+            in: subCategoriesIdes ? subCategoriesIdes : [],
+          },
+        },
+        {
+          subCategoryId: {
+            in: subCategoriesFromCategories ? subCategoriesFromCategories : [],
+          },
+        },
+
+        {
+          flavourId: {
+            in: flavourIdes ? flavourIdes : [],
+          },
+        },
+        {
+          nameEn: {
+            contains: nameEn,
+            mode: "insensitive",
+          },
+        },
+
+        {
+          nameAr: {
+            contains: nameAr,
+            mode: "insensitive",
+          },
+        },
+      ],
+    },
+  });
+
+  return res.status(200).json({
+    filtered_products: filtered_product,
+    productsNum: filtered_product_num,
+  });
 });
 
 const priceFilter = async function (
@@ -483,6 +690,118 @@ const priceFilter = async function (
     filtered_product_count,
   };
 };
+
+const userProductPriceFilter = async function (
+  subCategoriesIdes: any,
+  subCategoriesFromCategories: any,
+  flavourIdes: any,
+  nameEn: any,
+  page: any,
+  size: any,
+  nameAr: any,
+  priceStart: any,
+  priceEnd: any,
+  userId: number
+) {
+  //if there is a filters
+  const filtered_product = await prisma.product.findMany({
+    where: {
+      userId: userId,
+      OR: [
+        {
+          subCategoryId: {
+            in: subCategoriesIdes ? subCategoriesIdes : [],
+          },
+        },
+        {
+          subCategoryId: {
+            in: subCategoriesFromCategories ? subCategoriesFromCategories : [],
+          },
+        },
+
+        {
+          flavourId: {
+            in: flavourIdes ? flavourIdes : [],
+          },
+        },
+        {
+          nameEn: {
+            contains: nameEn,
+            mode: "insensitive",
+          },
+        },
+        {
+          price: {
+            gte: priceStart ? parseInt(priceStart) : 0,
+            lte: priceEnd ? parseInt(priceEnd) : 1000000,
+          },
+        },
+
+        {
+          nameAr: {
+            contains: nameAr,
+            mode: "insensitive",
+          },
+        },
+      ],
+    },
+    include: {
+      sybCategory: true,
+      flavour: true,
+    },
+
+    skip: parseInt(page) ? (parseInt(page) - 1) * size : 0,
+    take: parseInt(size) ? parseInt(size) : 10,
+  });
+
+  const filtered_product_count = await prisma.product.count({
+    where: {
+      userId: userId,
+      OR: [
+        {
+          subCategoryId: {
+            in: subCategoriesIdes ? subCategoriesIdes : [],
+          },
+        },
+        {
+          subCategoryId: {
+            in: subCategoriesFromCategories ? subCategoriesFromCategories : [],
+          },
+        },
+
+        {
+          flavourId: {
+            in: flavourIdes ? flavourIdes : [],
+          },
+        },
+        {
+          nameEn: {
+            contains: nameEn,
+            mode: "insensitive",
+          },
+        },
+        {
+          price: {
+            gte: priceStart ? parseInt(priceStart) : 0,
+            lte: priceEnd ? parseInt(priceEnd) : 1000000,
+          },
+        },
+
+        {
+          nameAr: {
+            contains: nameAr,
+            mode: "insensitive",
+          },
+        },
+      ],
+    },
+  });
+
+  return {
+    filtered_product,
+    filtered_product_count,
+  };
+};
 export {
   addProduct,
   updateProduct,
@@ -490,9 +809,10 @@ export {
   allProduct,
   productFilter,
   getProductById,
+  userProducts,
 };
 
-/// helper fuc
+/// helper func
 const getSubCatgoryListFromCategory = async (categoryId: any) => {
   try {
     let temp: number[] = [];
