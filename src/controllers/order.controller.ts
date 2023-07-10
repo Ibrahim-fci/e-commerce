@@ -150,6 +150,8 @@ const deleteCartItem = expressAsyncHandelar(async (req: any, res: any) => {
 const createOrder = expressAsyncHandelar(async (req: any, res: any) => {
   // @desc getUserFrom Token
   const user = req.user;
+  const cartItemsIdes = req.body.cartItemsIdes;
+  let selectedItemsPrice = 0;
 
   // @desc get body data
   const deliveryAddress = req.body.deliveryAddress;
@@ -160,9 +162,21 @@ const createOrder = expressAsyncHandelar(async (req: any, res: any) => {
     include: { cartItems: { where: { sold: false } } },
   });
 
+  // @desc get cartItems
+  const cartItems = await prisma.cartItem.findMany({
+    where: {
+      id: {
+        in: cartItemsIdes,
+      },
+      sold: false,
+    },
+  });
+
   if (!cart) return res.status(400).json({ msg: "cart is empty" });
-  if (cart?.cartItems.length == 0)
-    return res.status(400).json({ msg: "your cart is empty" });
+  if (cartItems.length == 0)
+    return res
+      .status(200)
+      .json({ msg: "item eithier sold or not added to your cart" });
 
   // @desc create an order
   const order = await prisma.order.create({
@@ -190,7 +204,9 @@ const createOrder = expressAsyncHandelar(async (req: any, res: any) => {
       },
       cart: {
         include: {
-          cartItems: true,
+          cartItems: {
+            where: { sold: false },
+          },
         },
       },
     },
@@ -198,7 +214,9 @@ const createOrder = expressAsyncHandelar(async (req: any, res: any) => {
 
   // @desc decrement products quantity
   // @dec update product sold num
-  cart.cartItems.map(async (cartItem) => {
+  await cartItems.map(async (cartItem) => {
+    selectedItemsPrice += cartItem.price || 0;
+
     let product = await prisma.product.findUnique({
       where: {
         id: cartItem.productId,
@@ -226,12 +244,21 @@ const createOrder = expressAsyncHandelar(async (req: any, res: any) => {
   // @desc update cart total price
   await prisma.cart.update({
     where: { userId: user.id },
-    data: { totalCartPrice: 0 },
+    data: {
+      totalCartPrice: cart.totalCartPrice
+        ? cart.totalCartPrice - selectedItemsPrice
+        : cart.totalCartPrice,
+    },
   });
 
-  return res
-    .status(200)
-    .json({ msg: "order created successfully", order: order });
+  const cartLength = await cartNum(user.id);
+  const updatedOrder = await getOrder(order.id);
+
+  return res.status(200).json({
+    msg: "order created successfully",
+    order: updatedOrder,
+    cartLength: cartLength - 1,
+  });
 });
 
 async function bestSellers(req: any, res: any) {
@@ -432,4 +459,51 @@ const getCart = async (userId: number) => {
   }
 
   return userCart;
+};
+
+const cartNum = async (userId: number) => {
+  // @desc get userCart
+  const cart = await prisma.cart.findUnique({
+    where: { userId: userId },
+    include: { cartItems: { where: { sold: false } } },
+  });
+  // return 200 with cartLength:0      alaa commmit 🫡
+  if (!cart) return 0;
+
+  return cart.cartItems.length;
+};
+
+const getOrder = async (orderId: number) => {
+  // @desc create an order
+  const order = await prisma.order.findUnique({
+    where: {
+      id: orderId,
+    },
+    include: {
+      user: {
+        select: {
+          email: true,
+          fullName: true,
+          profile: {
+            select: {
+              fName: true,
+              lName: true,
+              address: true,
+              city: true,
+              country: true,
+            },
+          },
+        },
+      },
+      cart: {
+        include: {
+          cartItems: {
+            where: { sold: false },
+          },
+        },
+      },
+    },
+  });
+
+  return order;
 };

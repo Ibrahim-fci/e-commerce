@@ -14,6 +14,7 @@ const updateCartItemValidator = [
 
 const createOrderValidator = [
   check("deliveryAddress").isString(),
+  check("cartItemsIdes").isArray().withMessage("").optional(),
   validatorMiddeleware,
 ];
 
