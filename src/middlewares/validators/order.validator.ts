@@ -15,6 +15,11 @@ const updateCartItemValidator = [
 const createOrderValidator = [
   check("deliveryAddress").isString(),
   check("cartItemsIdes").isArray().withMessage("").optional(),
+  check("cartItemsIdes.*")
+    .not()
+    .isString()
+    .isInt()
+    .withMessage("cartItemsIdes must be array of integers"),
   validatorMiddeleware,
 ];
 
