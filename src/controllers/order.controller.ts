@@ -216,7 +216,7 @@ const createOrder = expressAsyncHandelar(async (req: any, res: any) => {
   // @dec update product sold num
 
   cartItems.map(async (cartItem) => {
-    selectedItemsPrice += cartItem.price || 0;
+    selectedItemsPrice = cartItem.price || 0;
 
     let product = await prisma.product.findUnique({
       where: {
@@ -240,17 +240,18 @@ const createOrder = expressAsyncHandelar(async (req: any, res: any) => {
       where: { id: cartItem.id },
       data: { sold: true, orderId: order.id },
     });
+
+    await prisma.cart.update({
+      where: { userId: user.id },
+      data: {
+        totalCartPrice: cart.totalCartPrice
+          ? cart.totalCartPrice - selectedItemsPrice
+          : cart.totalCartPrice,
+      },
+    });
   });
 
   // @desc update cart total price
-  await prisma.cart.update({
-    where: { userId: user.id },
-    data: {
-      totalCartPrice: cart.totalCartPrice
-        ? cart.totalCartPrice - selectedItemsPrice
-        : cart.totalCartPrice,
-    },
-  });
 
   // @desc update order total_price
   const updatedOrder = await prisma.order.update({
