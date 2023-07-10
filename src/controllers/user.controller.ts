@@ -183,4 +183,5 @@ async function getUserByToken(req: any, res: any) {
 
   return res.status(200).json({ user: user });
 }
+
 export { signup, login, updateProfile, refreshToken, getUserByToken };

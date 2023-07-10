@@ -1,4 +1,4 @@
-import { Cart, CartItem, Prisma } from "@prisma/client";
+import { Cart, CartItem, Prisma, Role } from "@prisma/client";
 import prisma from "../utils/prisma";
 import expressAsyncHandelar from "express-async-handler";
 
@@ -294,6 +294,57 @@ const cartItemsNum = expressAsyncHandelar(async (req: any, res: any) => {
   return res.status(200).json({ cartLength: cart.cartItems.length });
 });
 
+const productOrders = expressAsyncHandelar(async (req: any, res: any) => {
+  // @desc getUserFrom Token
+  const user = req.user;
+  const productId = parseInt(req.params.id);
+  const temp = [];
+
+  console.log(user);
+
+  if (user.role != Role.COMPANY && user.role != Role.ADMIN)
+    return res
+      .status(400)
+      .json({ msg: "you have no permission to get orders" });
+
+  const cartItems = await prisma.cartItem.findMany({
+    where: {
+      productId: productId,
+      sold: true,
+    },
+    include: { product: true },
+  });
+
+  for (let i = 0; i < cartItems.length; i++) {
+    let orderId = cartItems[i].orderId || 0;
+    let order = await prisma.order.findUnique({
+      where: {
+        id: orderId,
+      },
+      include: {
+        user: {
+          select: {
+            fullName: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    if (!order) continue;
+    let customObj = {
+      // product: cartItems[i].product,
+      price: cartItems[i].price,
+      quantity: cartItems[i].quantity,
+      order: order,
+    };
+
+    temp.push(customObj);
+  }
+
+  return res.status(200).json({ data: temp });
+});
+
 export {
   addToCart,
   updateCartItem,
@@ -302,6 +353,7 @@ export {
   getCartItems,
   bestSellers,
   cartItemsNum,
+  productOrders,
 };
 
 // @desc Helpper func......
