@@ -241,12 +241,15 @@ const createOrder = expressAsyncHandelar(async (req: any, res: any) => {
       data: { sold: true, orderId: order.id },
     });
 
+    let total = cart.totalCartPrice
+      ? cart.totalCartPrice - selectedItemsPrice
+      : cart.totalCartPrice;
+    if (total && total < 0) total = 0;
+
     await prisma.cart.update({
       where: { userId: user.id },
       data: {
-        totalCartPrice: cart.totalCartPrice
-          ? cart.totalCartPrice - selectedItemsPrice
-          : cart.totalCartPrice,
+        totalCartPrice: total,
       },
     });
   });
