@@ -182,9 +182,9 @@ const createOrder = expressAsyncHandelar(async (req: any, res: any) => {
   const order = await prisma.order.create({
     data: {
       userId: user.id,
-      cartId: cart.id,
+      cartId: cartItems[0].cartId,
       deliveryAddress: deliveryAddress,
-      totalOrderPrice: cart.totalCartPrice,
+      totalOrderPrice: 0,
     },
     include: {
       user: {
@@ -214,7 +214,8 @@ const createOrder = expressAsyncHandelar(async (req: any, res: any) => {
 
   // @desc decrement products quantity
   // @dec update product sold num
-  await cartItems.map(async (cartItem) => {
+
+  cartItems.map(async (cartItem) => {
     selectedItemsPrice += cartItem.price || 0;
 
     let product = await prisma.product.findUnique({
@@ -251,13 +252,20 @@ const createOrder = expressAsyncHandelar(async (req: any, res: any) => {
     },
   });
 
+  // @desc update order total_price
+  const updatedOrder = await prisma.order.update({
+    where: { id: order.id },
+    data: {
+      totalOrderPrice: selectedItemsPrice,
+    },
+  });
+
   const cartLength = await cartNum(user.id);
-  const updatedOrder = await getOrder(order.id);
 
   return res.status(200).json({
     msg: "order created successfully",
     order: updatedOrder,
-    cartLength: cartLength - 1,
+    cartLength: cartLength - cartItems.length,
   });
 });
 
@@ -461,16 +469,16 @@ const getCart = async (userId: number) => {
   return userCart;
 };
 
-const cartNum = async (userId: number) => {
+const cartNum = async (cartId: number) => {
   // @desc get userCart
-  const cart = await prisma.cart.findUnique({
-    where: { userId: userId },
-    include: { cartItems: { where: { sold: false } } },
+  const cartItemsNum = await prisma.cartItem.count({
+    where: {
+      cartId: cartId,
+      sold: false,
+    },
   });
-  // return 200 with cartLength:0      alaa commmit 🫡
-  if (!cart) return 0;
 
-  return cart.cartItems.length;
+  return cartItemsNum;
 };
 
 const getOrder = async (orderId: number) => {
