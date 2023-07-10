@@ -300,12 +300,24 @@ const productOrders = expressAsyncHandelar(async (req: any, res: any) => {
   const productId = parseInt(req.params.id);
   const temp = [];
 
-  console.log(user);
-
   if (user.role != Role.COMPANY && user.role != Role.ADMIN)
     return res
       .status(400)
       .json({ msg: "you have no permission to get orders" });
+
+  // @desc find product
+  const product = await prisma.product.findUnique({
+    where: {
+      id: productId,
+    },
+  });
+
+  // @desc check if product existred  and user have permissions to see it
+  if (!product) return res.status(400).json({ msg: "product not found" });
+  if (product.userId != user.id)
+    return res.status(400).json({
+      msg: `you have no permission to get orders of product with id ${productId}`,
+    });
 
   const cartItems = await prisma.cartItem.findMany({
     where: {
