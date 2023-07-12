@@ -419,7 +419,7 @@ const alllOrder = expressAsyncHandelar(async (req: any, res: any) => {
       product: { userId: user.id },
       sold: true,
     },
-    include: { product: true },
+    include: { product: { include: { sybCategory: true, flavour: true } } },
     orderBy: {
       createdAt: "desc",
     },
