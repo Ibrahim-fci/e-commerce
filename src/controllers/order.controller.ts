@@ -416,10 +416,21 @@ const alllOrder = expressAsyncHandelar(async (req: any, res: any) => {
 
   // @desc if user role is client return all user orders
   if (user.role == "CLIENT") {
-    const orders = await allCustomerOrder(user.id);
-    return res.status(200).json({ orders });
+    const ordersNum = await prisma.order.count({
+      where: {
+        userId: user.id,
+      },
+    });
+    const orders = await allCustomerOrder(user.id, page, size);
+    return res.status(200).json({ orders, ordersNum: ordersNum });
   }
 
+  const cartItemsNum = await prisma.cartItem.count({
+    where: {
+      product: { userId: user.id },
+      sold: true,
+    },
+  });
   const cartItems = await prisma.cartItem.findMany({
     where: {
       product: { userId: user.id },
@@ -455,13 +466,47 @@ const alllOrder = expressAsyncHandelar(async (req: any, res: any) => {
       createdAt: order?.createdAt,
       deliveryAddress: order?.deliveryAddress,
       status: order?.status,
-      ordersNum: cartItems.length,
     };
 
     temp.push(customObj);
   }
 
-  return res.status(200).json({ orders: temp });
+  return res.status(200).json({ orders: temp, ordersNum: cartItemsNum });
+});
+
+const orderIsDlivred = expressAsyncHandelar(async (req: any, res: any) => {
+  // @desc getUserFrom Token
+  const user = req.user;
+  const orderId = parseInt(req.params.id);
+
+  if (user.role != "ADMIN" && user.role != "COMPANY")
+    return res
+      .status(400)
+      .json({ msg: "you have no permission to access this service" });
+
+  const order = await prisma.order.findUnique({
+    where: {
+      id: orderId,
+    },
+  });
+
+  if (!order) return res.status(400).json({ msg: "order not found" });
+  let date = new Date().toLocaleString();
+  if (order.isDelivered == true) date = "";
+
+  const updatedOrder = await prisma.order.update({
+    where: {
+      id: order.id,
+    },
+    data: {
+      isDelivered: !order.isDelivered,
+      deliveredAt: date,
+    },
+  });
+
+  return res
+    .status(200)
+    .json({ msg: "order is delivery upddated successfully", updatedOrder });
 });
 
 export {
@@ -474,6 +519,7 @@ export {
   cartItemsNum,
   productOrders,
   alllOrder,
+  orderIsDlivred,
 };
 
 // @desc Helpper func......
@@ -573,7 +619,7 @@ const checkProductQuantity = async (cartItems: CartItem[], res: any) => {
   return 0;
 };
 
-const allCustomerOrder = async (userId: number) => {
+const allCustomerOrder = async (userId: number, page: any, size: any) => {
   let temp = [];
 
   // @desc get user orders
@@ -581,6 +627,8 @@ const allCustomerOrder = async (userId: number) => {
     where: {
       userId: userId,
     },
+    skip: parseInt(page) ? (parseInt(page) - 1) * size : 0,
+    take: parseInt(size) ? parseInt(size) : 10,
   });
 
   for (let i = 0; i < userOrders.length; i++) {

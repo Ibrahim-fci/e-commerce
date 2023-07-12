@@ -146,7 +146,7 @@ model Order {
   paymentMethodType  Payment @default(CASH)
 
   isDelivered  Boolean  @default(false)
-  deliveredAt DateTime?
+  deliveredAt String?
 
   isPaid  Boolean  @default(false)
   paidAt DateTime?

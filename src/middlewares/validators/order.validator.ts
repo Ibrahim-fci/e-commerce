@@ -23,4 +23,11 @@ const createOrderValidator = [
   validatorMiddeleware,
 ];
 
-export { addToCartValidator, updateCartItemValidator, createOrderValidator };
+const isDeliveredValidator = [check("id").isInt(), validatorMiddeleware];
+
+export {
+  addToCartValidator,
+  updateCartItemValidator,
+  createOrderValidator,
+  isDeliveredValidator,
+};
