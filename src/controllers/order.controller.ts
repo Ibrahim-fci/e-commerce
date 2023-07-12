@@ -414,6 +414,12 @@ const alllOrder = expressAsyncHandelar(async (req: any, res: any) => {
   let temp: any[] = [];
   let { page, size } = req.query;
 
+  // @desc if user role is client return all user orders
+  if (user.role == "CLIENT") {
+    const orders = await allCustomerOrder(user.id);
+    return res.status(200).json({ orders });
+  }
+
   const cartItems = await prisma.cartItem.findMany({
     where: {
       product: { userId: user.id },
@@ -565,4 +571,33 @@ const checkProductQuantity = async (cartItems: CartItem[], res: any) => {
   }
 
   return 0;
+};
+
+const allCustomerOrder = async (userId: number) => {
+  let temp = [];
+
+  // @desc get user orders
+  const userOrders = await prisma.order.findMany({
+    where: {
+      userId: userId,
+    },
+  });
+
+  for (let i = 0; i < userOrders.length; i++) {
+    let orderId = userOrders[i].id;
+
+    let cartItems = await prisma.cartItem.findMany({
+      where: {
+        orderId: orderId,
+      },
+      include: { product: { include: { sybCategory: true, flavour: true } } },
+    });
+
+    temp.push({
+      order: userOrders[i],
+      cartItems,
+    });
+  }
+
+  return temp;
 };
