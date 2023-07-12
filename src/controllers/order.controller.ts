@@ -172,6 +172,15 @@ const createOrder = expressAsyncHandelar(async (req: any, res: any) => {
     },
   });
 
+  // // @desc check product num in the store
+  const pId = await checkProductQuantity(cartItems, res);
+  if (pId != 0)
+    return res
+      .status(400)
+      .json({ msg: `product with id: ${pId} has no enough quantity you want` });
+
+  console.log("pId-------------------->", pId);
+
   if (!cart) return res.status(400).json({ msg: "cart is empty" });
   if (cartItems.length == 0)
     return res
@@ -338,6 +347,7 @@ const productOrders = expressAsyncHandelar(async (req: any, res: any) => {
   const user = req.user;
   const productId = parseInt(req.params.id);
   const temp = [];
+  let { page, size } = req.query;
 
   if (user.role != Role.COMPANY && user.role != Role.ADMIN)
     return res
@@ -364,6 +374,8 @@ const productOrders = expressAsyncHandelar(async (req: any, res: any) => {
       sold: true,
     },
     include: { product: true },
+    skip: parseInt(page) ? (parseInt(page) - 1) * size : 0,
+    take: parseInt(size) ? parseInt(size) : 10,
   });
 
   for (let i = 0; i < cartItems.length; i++) {
@@ -396,6 +408,56 @@ const productOrders = expressAsyncHandelar(async (req: any, res: any) => {
   return res.status(200).json({ data: temp });
 });
 
+const alllOrder = expressAsyncHandelar(async (req: any, res: any) => {
+  // @desc getUserFrom Token
+  const user = req.user;
+  let temp: any[] = [];
+  let { page, size } = req.query;
+
+  const cartItems = await prisma.cartItem.findMany({
+    where: {
+      product: { userId: user.id },
+      sold: true,
+    },
+    include: { product: true },
+    orderBy: {
+      createdAt: "desc",
+    },
+    skip: parseInt(page) ? (parseInt(page) - 1) * size : 0,
+    take: parseInt(size) ? parseInt(size) : 10,
+  });
+
+  for (let i = 0; i < cartItems.length; i++) {
+    let cartItem = cartItems[i];
+
+    let order = await prisma.order.findUnique({
+      where: { id: cartItem.orderId ? cartItem.orderId : undefined },
+      include: {
+        user: { select: { fullName: true, email: true, profile: true } },
+      },
+    });
+
+    let customObj = {
+      product: cartItem.product,
+      quantity: cartItem.quantity,
+      price: cartItem.price,
+      user: order?.user,
+      isDelivered: order?.isDelivered,
+      deliveredAt: order?.deliveredAt,
+      isPaid: order?.isPaid,
+      paidAt: order?.paidAt,
+      createdAt: order?.createdAt,
+      deliveryAddress: order?.deliveryAddress,
+      status: order?.status,
+      ordersNum: cartItems.length,
+    };
+
+    temp.push(customObj);
+  }
+
+  return res.status(200).json({ orders: temp });
+});
+
 export {
   addToCart,
   updateCartItem,
@@ -405,6 +467,7 @@ export {
   bestSellers,
   cartItemsNum,
   productOrders,
+  alllOrder,
 };
 
 // @desc Helpper func......
@@ -485,37 +548,21 @@ const cartNum = async (cartId: number) => {
   return cartItemsNum;
 };
 
-const getOrder = async (orderId: number) => {
-  // @desc create an order
-  const order = await prisma.order.findUnique({
-    where: {
-      id: orderId,
-    },
-    include: {
-      user: {
-        select: {
-          email: true,
-          fullName: true,
-          profile: {
-            select: {
-              fName: true,
-              lName: true,
-              address: true,
-              city: true,
-              country: true,
-            },
-          },
-        },
-      },
-      cart: {
-        include: {
-          cartItems: {
-            where: { sold: false },
-          },
-        },
-      },
-    },
-  });
+const checkProductQuantity = async (cartItems: CartItem[], res: any) => {
+  for (let i = 0; i < cartItems.length; i++) {
+    let cartItem = cartItems[i];
 
-  return order;
+    let product = await prisma.product.findUnique({
+      where: {
+        id: cartItem.productId,
+      },
+    });
+
+    if (!product) return;
+    if (product.quantity && product.quantity < cartItem.quantity) {
+      return product.id;
+    }
+  }
+
+  return 0;
 };

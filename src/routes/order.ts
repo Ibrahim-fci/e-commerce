@@ -15,6 +15,7 @@ import {
   bestSellers,
   cartItemsNum,
   productOrders,
+  alllOrder,
 } from "../controllers/order.controller";
 
 const router = express.Router();
@@ -32,5 +33,6 @@ router.put(
 router.delete("/cart-items/:id", authorize, deleteCartItem);
 router.post("/", authorize, createOrderValidator, createOrder);
 router.get("/product-orders/:id", authorize, productOrders);
+router.get("/all-orders/", authorize, alllOrder);
 
 export default router;
