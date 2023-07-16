@@ -15,7 +15,7 @@ async function createNewUser(req: any, res: any) {
   //generate Token
   let token = await generateAccessToken({
     id: req.body.id,
-    email: req.body.emai,
+    email: req.body.email,
   });
   try {
     if (req.body.type == "normal") {
